@@ -1,0 +1,34 @@
+#VRML_SIM R2023a utf8
+PROTO Unit [
+    field SFString name "box_unit0"
+    field SFColor color 1 0 0
+    field SFVec3f translation 0.9 0 0.05
+    field SFVec2f target 0 9
+    field SFVec3f size 0.1 0.1 0.1
+]
+
+{
+    Robot {
+        translation IS translation
+        name IS name
+        children [
+            Solid{
+                children[
+                    DEF BOX Shape{
+                        appearance PBRAppearance{
+                            baseColor IS color
+                            roughness 1
+                            metalness 0
+                        }
+                        geometry Box{
+                            size IS size
+                        }
+                    }
+                ]
+                boundingObject USE BOX
+            }
+        ]
+        controller "box_supervisor"
+        supervisor TRUE
+    }
+}
