@@ -27,6 +27,22 @@ PROTO Unit [
                 ]
                 boundingObject USE BOX
             }
+            SimpleLED {
+                name "led_pos_y"
+                translation 0 0.03 0.05
+            }
+            SimpleLED {
+                name "led_neg_y"
+                translation 0 -0.03  0.05
+            }
+            SimpleLED {
+                name "led_pos_x"
+                translation 0.03 0 0.05
+            }
+            SimpleLED {
+                name "led_neg_x"
+                translation -0.03 0 0.05
+            }
         ]
         controller "box_supervisor"
         supervisor TRUE
