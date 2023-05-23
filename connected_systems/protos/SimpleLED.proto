@@ -1,4 +1,4 @@
-#VRML_SIM R2020a utf8
+#VRML_SIM R2023a utf8
 PROTO SimpleLED [
     field SFString name "led0"
     field MFColor color [

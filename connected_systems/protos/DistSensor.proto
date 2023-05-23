@@ -1,0 +1,13 @@
+#VRML_SIM R2023a utf8
+PROTO DistSensor [
+    field SFString name "dSensor"
+    field SFVec3f translation 0 0 0
+    field SFRotation  rotation 0 0 0 0
+]
+{
+    DistanceSensor {
+        name IS name
+        translation IS translation
+        rotation IS rotation
+    }
+}

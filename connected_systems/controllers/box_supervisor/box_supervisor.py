@@ -26,9 +26,26 @@ led_pos_x = robot.getDevice("led_pos_x")
 led_neg_x = robot.getDevice("led_neg_x")
 leds = [led_pos_y, led_neg_y, led_pos_x, led_neg_x]
 
+ds_n = robot.getDevice("sensor_north")
+ds_e = robot.getDevice("sensor_east")
+ds_s = robot.getDevice("sensor_south")
+ds_w = robot.getDevice("sensor_west")
+dist_sensors = [ds_n, ds_e, ds_s, ds_w]
+for ds in dist_sensors:
+    ds.enable(1)
+
 
 # execute every second
 while robot.step(duration) != -1:
+    distance_north = ds_n.getValue()
+    distance_east = ds_e.getValue()
+    distance_south = ds_s.getValue()
+    distance_west = ds_w.getValue()
+    # print(f'{sv_name} - NORTH: {distance_north}')
+    # print(f'{sv_name} - EAST: {distance_east}')
+    # print(f'{sv_name} - SOUTH: {distance_south}')
+    # print(f'{sv_name} - WEST: {distance_west}')
+
     for led in leds:
         led.set(0)  # Turn of all leds
     cur_pos = supervisorNode.getPosition()

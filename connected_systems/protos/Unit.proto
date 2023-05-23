@@ -43,6 +43,26 @@ PROTO Unit [
                 name "led_neg_x"
                 translation -0.03 0 0.05
             }
+            DistSensor {
+                name "sensor_north"
+                translation 0 0.04 0
+                rotation 0 0 1 1.5708
+            }
+            DistSensor {
+                name "sensor_east"
+                translation 0.04 0 0
+                rotation 0 0 1 0
+            }
+            DistSensor {
+                name "sensor_south"
+                translation 0 -0.04 0
+                rotation 0 0 1 -1.5708
+            }
+            DistSensor {
+                name "sensor_west"
+                translation -0.04 0 0
+                rotation 0 0 1 3.14159
+            }
         ]
         controller "box_supervisor"
         supervisor TRUE
