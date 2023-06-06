@@ -13,8 +13,8 @@ services:
   mosquitto:
     image: eclipse-mosquitto:latest
     volumes:
-      - ./mosquitto/config/:/etc/mosquitto/config
+      - ./mosquitto/config/:/mosquitto/config
     ports:
       - "1883:1883"
       - "1884:1884"
-    restart: always
+    restart: always 
