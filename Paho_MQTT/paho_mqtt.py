@@ -3,12 +3,13 @@ import paho.mqtt.client as mqtt
 # MQTT Broker (replace with your broker's IP address or hostname)
 
 # "mqtt.example.com" , "mqtt://localhost:1883", "test.mosquitto.org"
-broker = "test.mosquitto.org"
+broker = "localhost"
 port = 1883
 
 # MQTT topics to subscribe and publish to
 subscribe_topic = "my_topic/subscribe"
 publish_topic = "my_topic/publish"
+
 
 # Callback function when a connection is established with the MQTT broker
 def on_connect(client, userdata, flags, rc):
@@ -16,6 +17,8 @@ def on_connect(client, userdata, flags, rc):
         print("Connected to MQTT broker with result code: " + str(rc))
         # Subscribe to the topic when connected
         client.subscribe(subscribe_topic)  # Topic to subscribe to
+
+
 
 # Callback function when a message is received from the subscribed topic
 def on_message(client, userdata, msg):
