@@ -1,1 +1,3 @@
 Paho_MQTT/.venv
+mosquitto/data
+mosquitto/log
