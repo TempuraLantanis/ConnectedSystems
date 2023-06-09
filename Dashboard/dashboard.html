@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Dashboard</title>
+    <link rel="stylesheet" type="text/css" href="dashboard.css">
+</head>
+
+<body>
+    <h1>Dashboard</h1>
+    <div id="map"></div>
+    <h2>Opdrachtenqueue</h2>
+    <ul id="queue"></ul>
+    <h2>Unit Doel instellen</h2>
+    <label for="unit-select">Selecteer unit:</label>
+    <select id="unit-select"></select>
+    <br>
+    <label for="goal-input">Doel:</label>
+    <input type="text" id="goal-input">
+    <button id="set-goal-btn">Instellen</button>
+    <h2>Opdracht toevoegen/verwijderen</h2>
+    <input type="text" id="opdracht-input">
+    <button id="add-opdracht-btn">Toevoegen</button>
+    <button id="remove-opdracht-btn">Verwijderen</button>
+    <h2>Noodstop</h2>
+    <button id="noodstop-btn">Noodstop</button>
+
+    <script src="https://cdn.jsdelivr.net/npm/paho-mqtt@1.1.0/dist/mqtt.min.js"></script>
+    <script src="dashboard.js"></script>
+</body>
+
+</html>
