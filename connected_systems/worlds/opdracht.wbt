@@ -8,8 +8,8 @@ EXTERNPROTO "../protos/Unit.proto"
 WorldInfo {
 }
 Viewpoint {
-  orientation 0.4425495389938434 -0.44224731432544356 -0.7801071839870909 4.465909565072936
-  position 0.5454380075083847 -1.0304806125572308 2.557988789115345
+  orientation 0.45525143843692045 -0.45323759894303106 -0.7663692365338467 4.4450987290549495
+  position 0.639258170749924 -1.151784217486513 2.9492691158094786
 }
 TexturedBackground {
 }
@@ -22,21 +22,149 @@ RectangleArena {
 Unit {
   name "box_unit1"
   translation 0 0 0.05
+  target 0 6
 }
 Unit {
   name "box_unit2"
   color 1 1 0
-  target 3 2
+  target 9 0
 }
 Unit {
   name "box_unit3"
   color 0 0 1
   translation 0 0.9 0.05
-  target 2 7
 }
 Unit {
   name "box_unit4"
   color 0 1 0
   translation 0.9 0.9 0.05
-  target 5 5
+  target 9 9
+}
+Solid {
+  translation 0.2 0.1 0.05
+  children [
+    Shape {
+      appearance PBRAppearance {
+      }
+      geometry Box {
+        size 0.3 0.1 0.1
+      }
+    }
+  ]
+  name "obstacle"
+  boundingObject Box {
+    size 0.3 0.1 0.1
+  }
+}
+Solid {
+  translation 0.7 0.1 0.05
+  children [
+    Shape {
+      appearance PBRAppearance {
+      }
+      geometry Box {
+        size 0.3 0.1 0.1
+      }
+    }
+  ]
+  name "obstacle(1)"
+  boundingObject Box {
+    size 0.3 0.1 0.1
+  }
+}
+Solid {
+  translation 0.2 0.3 0.05
+  children [
+    Shape {
+      appearance PBRAppearance {
+      }
+      geometry Box {
+        size 0.3 0.1 0.1
+      }
+    }
+  ]
+  name "obstacle(2)"
+  boundingObject Box {
+    size 0.3 0.1 0.1
+  }
+}
+Solid {
+  translation 0.7 0.3 0.05
+  children [
+    Shape {
+      appearance PBRAppearance {
+      }
+      geometry Box {
+        size 0.3 0.1 0.1
+      }
+    }
+  ]
+  name "obstacle(3)"
+  boundingObject Box {
+    size 0.3 0.1 0.1
+  }
+}
+Solid {
+  translation 0.2 0.6 0.05
+  children [
+    Shape {
+      appearance PBRAppearance {
+      }
+      geometry Box {
+        size 0.3 0.1 0.1
+      }
+    }
+  ]
+  name "obstacle(4)"
+  boundingObject Box {
+    size 0.3 0.1 0.1
+  }
+}
+Solid {
+  translation 0.7 0.6 0.05
+  children [
+    Shape {
+      appearance PBRAppearance {
+      }
+      geometry Box {
+        size 0.3 0.1 0.1
+      }
+    }
+  ]
+  name "obstacle(5)"
+  boundingObject Box {
+    size 0.3 0.1 0.1
+  }
+}
+Solid {
+  translation 0.2 0.8 0.05
+  children [
+    Shape {
+      appearance PBRAppearance {
+      }
+      geometry Box {
+        size 0.3 0.1 0.1
+      }
+    }
+  ]
+  name "obstacle(6)"
+  boundingObject Box {
+    size 0.3 0.1 0.1
+  }
+}
+Solid {
+  translation 0.7 0.8 0.05
+  children [
+    Shape {
+      appearance PBRAppearance {
+      }
+      geometry Box {
+        size 0.3 0.1 0.1
+      }
+    }
+  ]
+  name "obstacle(7)"
+  boundingObject Box {
+    size 0.3 0.1 0.1
+  }
 }

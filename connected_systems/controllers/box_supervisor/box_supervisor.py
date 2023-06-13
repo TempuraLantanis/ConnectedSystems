@@ -2,7 +2,180 @@
 
 # You may need to import some classes of the controller module. Ex:
 #  from controller import Robot, Motor, DistanceSensor
+from collections import deque
 from controller import Supervisor
+
+
+def add_neighbor(adjacency_list, location, neighbor):
+    '''
+    Helper function to add a neighbor to a given location in the adjacency list.
+    '''
+    adjacency_list[location].add(neighbor)
+    adjacency_list[neighbor].add(location)
+
+
+def update_graph(adjacency_list, obstacles, old_location, new_location):
+    '''
+    Update graph when another unit has moved from old_location to new_location.
+
+    First add old's neighbor's back to its adj. list
+        Checks for each neighbor in if statement:
+        - Don't add new_location as neighbor to old
+        - Is neighbor within bounds
+        - Don't add an obstacle as neighbor
+
+    Parameters:
+    - adjacency_list: The dictionary representing the adjacency list of the graph
+    - obstacles: A list of obstacle locations
+    - old_location: The old location of the moved unit
+    - new_location: The new location of the moved unit
+    '''
+    # Add unit's old location back to its neighbors
+    if (old_location[0] + 1 != new_location[0] and
+        old_location[0] + 1 <= 9 and
+            (old_location[0] + 1, old_location[1]) not in obstacles):
+        add_neighbor(adjacency_list, old_location,
+                     (old_location[0] + 1, old_location[1]))
+
+    if (old_location[0] - 1 != new_location[0] and
+        old_location[0] - 1 >= 0 and
+            (old_location[0] - 1, old_location[1]) not in obstacles):
+        add_neighbor(adjacency_list, old_location,
+                     (old_location[0] - 1, old_location[1]))
+
+    if (old_location[1] + 1 != new_location[1] and
+        old_location[1] + 1 <= 9 and
+            (old_location[0], old_location[1] + 1) not in obstacles):
+        add_neighbor(adjacency_list, old_location,
+                     (old_location[0], old_location[1] + 1))
+
+    if (old_location[1] - 1 != new_location[1] and
+        old_location[1] - 1 >= 0 and
+            (old_location[0], old_location[1] - 1) not in obstacles):
+        add_neighbor(adjacency_list, old_location,
+                     (old_location[0], old_location[1] - 1))
+
+    # Remove the new location from the neighbors of new's neighbors
+    for neighbor in adjacency_list[new_location]:
+        if new_location in adjacency_list[neighbor]:
+            adjacency_list[neighbor].remove(new_location)
+
+    # clear new_location's adj. list
+    adjacency_list[new_location].clear()
+
+    return adjacency_list
+
+
+def add_obstacle(adjacency_list, obstacle):
+    '''
+    Update the graph when an obstacle is added.
+    '''
+    # Remove the obstacle from the neighbors of its neighbors
+    for neighbor in adjacency_list[obstacle]:
+        if obstacle in adjacency_list[neighbor]:
+            adjacency_list[neighbor].remove(obstacle)
+
+    # Update the adjacency list with the new location
+    adjacency_list[obstacle].clear()
+
+
+def create_graph(adjacency_list, obstacles_units):
+    '''
+    Creates a graph represented by an adjacency list based on a 10x10 grid,
+    considering the specified obstacle units.
+
+    Parameters:
+    - adjacency_list: The dictionary representing the adjacency list of the graph
+    - obstacles_units: A set containing the coordinates of the obstacle units in the grid
+
+    Returns:
+    - adjacency_list: The updated adjacency list representing the graph
+    '''
+    for i in range(10):
+        for j in range(10):
+            neighbors = set()
+
+            if (i, j) not in obstacles_units:
+                if i > 0 and (i - 1, j) not in obstacles_units:
+                    neighbors.add((i - 1, j))  # Add the neighbor to the left
+                if i < 9 and (i + 1, j) not in obstacles_units:
+                    neighbors.add((i + 1, j))  # Add the neighbor to the right
+                if j > 0 and (i, j - 1) not in obstacles_units:
+                    neighbors.add((i, j - 1))  # Add the neighbor above
+                if j < 9 and (i, j + 1) not in obstacles_units:
+                    neighbors.add((i, j + 1))  # Add the neighbor below
+
+            adjacency_list[(i, j)] = neighbors
+
+    return adjacency_list
+
+
+def solve(s):
+    '''
+    Performs a breadth-first search traversal on a graph, starting node s.
+
+    Returns:
+    - prev: A dictionary mapping each node to its previous node in the traversal path
+    '''
+    q = deque()
+    q.append(s)
+
+    visited = {node: False for node in graph}
+    visited[s] = True
+
+    prev = {node: None for node in graph}
+
+    while q:
+        node = q.popleft()
+        neighbors = graph[node]
+
+        for next in neighbors:
+            if not visited[next]:
+                q.append(next)
+                visited[next] = True
+                prev[next] = node
+    return prev
+
+
+def reconstructPath(s, e, prev):
+    '''
+    Reconstructs the path from the start node (s) to the end node (e) using the prev dictionary.
+
+    Returns:
+    - path: The reconstructed path from s to e (excluding s if it exists)
+    '''
+    path = []
+    p = e
+    while p:
+        path.append(p)
+        p = prev[p]
+
+    path.reverse()
+
+    # Return path except s if path exists
+    return path[1:] if path[0] == s else []
+
+
+def bfs(s, e):
+    # Do a BFS starting at node s
+    prev = solve(s)
+
+    # Return reconstructed path from s -> e
+    return reconstructPath(s, e, prev)
+
+
+def update_leds(current, next):
+    '''
+    Turn on a led based on the current and next locations
+    '''
+    if next[0] > current[0]:
+        led_pos_x.set(1)
+    elif next[0] < current[0]:
+        led_neg_x.set(1)
+    elif next[1] > current[1]:
+        led_pos_y.set(1)
+    elif next[1] < current[1]:
+        led_neg_y.set(1)
 
 
 # create the Robot instance
@@ -19,13 +192,14 @@ timestep = int(robot.getBasicTimeStep())
 # calculate a multiple of timestep close to one second
 duration = (1000 // timestep) * timestep
 
-
+# Get leds
 led_pos_y = robot.getDevice("led_pos_y")
 led_neg_y = robot.getDevice("led_neg_y")
 led_pos_x = robot.getDevice("led_pos_x")
 led_neg_x = robot.getDevice("led_neg_x")
 leds = [led_pos_y, led_neg_y, led_pos_x, led_neg_x]
 
+# Init distance sensors
 ds_n = robot.getDevice("sensor_north")
 ds_e = robot.getDevice("sensor_east")
 ds_s = robot.getDevice("sensor_south")
@@ -35,40 +209,88 @@ for ds in dist_sensors:
     ds.enable(1)
 
 
+# TODO get locations from all the units from the server
+location_unit1 = (0, 0)
+location_unit2 = (9, 0)
+location_unit3 = (9, 9)
+location_unit4 = (0, 9)
+
+
+other_units = [
+    location_unit1,
+    location_unit2,
+    location_unit3,
+    location_unit4,
+]
+this_unit_pos = supervisorNode.getPosition()
+# Remove unit itself from other_units
+other_units.remove(
+    (round(10 * this_unit_pos[0]), round(10 * this_unit_pos[1])))
+
+obstacles_local = []
+obstacles_server = []
+
+# Create graph/adjacency list
+graph = create_graph({}, other_units)
+
+
+for obstacle_s in obstacles_server:
+    if obstacle_s not in obstacles_local:  # check if a new obstacle came in from server
+        add_obstacle(graph, obstacle_s)
+        obstacles_local.append(obstacle_s)
+
+
 # execute every second
 while robot.step(duration) != -1:
+    for led in leds:
+        led.set(0)  # Turn of all leds
+
+    position_field = supervisorNode.getPosition()
+
+    # Get sensor values
     distance_north = ds_n.getValue()
     distance_east = ds_e.getValue()
     distance_south = ds_s.getValue()
     distance_west = ds_w.getValue()
-    # print(f'{sv_name} - NORTH: {distance_north}')
-    # print(f'{sv_name} - EAST: {distance_east}')
-    # print(f'{sv_name} - SOUTH: {distance_south}')
-    # print(f'{sv_name} - WEST: {distance_west}')
 
-    for led in leds:
-        led.set(0)  # Turn of all leds
-    cur_pos = supervisorNode.getPosition()
+    # Update graph if another unit has moved
+    for unit in other_units:
+        # TODO update all unit's locations from server (except current unit)
+        pass
+        # TODO copmare local units with server if moved
+        # if unit_local != unit_server:   # unit has moved
+        #   graph = update_graph(graph, obstacles+other_units, unit_local_location, unit_server_location)
 
-    new_posX, new_posY = cur_pos[0], cur_pos[1]  # new = current
-    posX = round(10 * cur_pos[0])  # 0.1 -> 1
-    posY = round(10 * cur_pos[1])
+    cur_pos = (round(10 * position_field[0]),   # round example: 0.1 -> 1
+               round(10 * position_field[1]))
+    target = (round(sv_target_field[0]),    # round example: 1.0 -> 1
+              round(sv_target_field[1]))
 
-    targetX = round(sv_target_field[0])  # 0.1 -> 1
-    targetY = round(sv_target_field[1])
+    # Check for obstacles with sensor data
+    obstacle = ()
+    if distance_north < 1000 and cur_pos[1] != 9:
+        obstacle = (cur_pos[0], cur_pos[1] + 1)
+    if distance_east < 1000 and cur_pos[0] != 9:
+        obstacle = (cur_pos[0] + 1, cur_pos[1])
+    if distance_south < 1000 and cur_pos[1] != 0:
+        obstacle = (cur_pos[0], cur_pos[1] - 1)
+    if distance_west < 1000 and cur_pos[0] != 0:
+        obstacle = (cur_pos[0] - 1, cur_pos[1])
 
-    if targetX > posX:
-        new_posX = round((posX) / 10, 1) + 0.1
-        led_pos_x.set(1)
-    elif targetX < posX:
-        new_posX = round((posX) / 10, 1) - 0.1
-        led_neg_x.set(1)
-    elif targetY > posY:
-        new_posY = round((posY) / 10, 1) + 0.1
-        led_pos_y.set(1)
-    elif targetY < posY:
-        new_posY = round((posY) / 10, 1) - 0.1
-        led_neg_y.set(1)
+    # if obstacle detected add to obstacles and remove from graph
+    if obstacle and obstacle not in obstacles_local:
+        obstacles_local.append(obstacle)
+        add_obstacle(graph, obstacle)
+        # TODO send obstacle's location to server
 
-    if targetX != posX or targetY != posY:
-        sv_translation_field.setSFVec3f([new_posX, new_posY, 0.05])
+    # Calculate path if needed
+    if target != cur_pos:
+        path = bfs(cur_pos, target)
+        if path:
+            # path exists
+            update_leds(cur_pos, path[0])
+            sv_translation_field.setSFVec3f(
+                [path[0][0]/10, path[0][1]/10, 0.05])
+        else:
+            # no path exists (path = [])
+            pass    # TODO display on dashboard that target is unreachable
