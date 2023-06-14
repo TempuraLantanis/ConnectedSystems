@@ -6,7 +6,7 @@ broker = "localhost"
 port = 1883
 
 
-destinations = [[1,2],[5,6],[11,10],[3,1]]
+destinations = [["1","2"],["5","6"],["11","10"],["3","1"]]
 
 queue = []
 
@@ -18,12 +18,17 @@ availableRobotIndex = [False, False, False, False];
 rob1Pos = [None,None]
 rob2Pos = [None,None]
 rob3Pos = [None,None]
-rob4Pos = [3,1]
+rob4Pos = [None,None]
 
 
-obstacleList = []
+obstacleMasterList = []
+obstacleList1 = []
+obstacleList2 = []
+obstacleList3 = []
+obstacleList4 = []
 
-subscribe_topics =["$SYS/broker/clients","obstakels","currentDestination","queuedDestination",
+
+subscribe_topics =["$SYS/broker/clients","obstacles/1","obstacles/2","obstacles/3","obstacles/4","currentDestination","queuedDestination",
                    "robots/1/x","robots/2/x","robots/3/x","robots/4/x"
                    ,"robots/1/y","robots/2/y","robots/3/y","robots/4/y"]
 
@@ -49,11 +54,43 @@ def on_message(client,userdata,msg):
     if msg.topic[:6] == "robots":
         print('msg Pos received')
         updatePosition(msg)
+
+
     if msg.topic == "queuedDestination":
         print('queuedDestination received')
         queue.append(json.loads(msg.payload.decode()))
+    
+    if msg.topic [:9] == "obstacles":
+        print('obstacles received')
+
+        updateObstacles(msg)
         
-   
+        updateList()
+        print("obstacleMasterList: " + str(obstacleMasterList))
+        client.publish("obstacles/masterlist", str(obstacleMasterList))
+        #json.dumps()
+
+
+def updateObstacles(case):
+    global obstacleList1
+    global obstacleList2
+    global obstacleList3
+    global obstacleList4
+    if case.topic == "obstacles/1":
+        obstacleList1 = json.loads(str(case.payload.decode()))
+    elif case.topic == "obstacles/2":
+        obstacleList2 = json.loads(str(case.payload.decode()))
+    elif case.topic == "obstacles/3":
+        obstacleList3 = json.loads(str(case.payload.decode()))
+    elif case.topic == "obstacles/4":
+        obstacleList4 = json.loads(str(case.payload.decode()))
+    
+
+    print("obstacleList1: " + str(obstacleList1))
+    print("obstacleList2: " + str(obstacleList2))
+    print("obstacleList3: " + str(obstacleList3))
+    print("obstacleList4: " + str(obstacleList4))
+
 
 def updatePosition(case):
     if case.topic == "robots/1/x":
@@ -68,9 +105,15 @@ def updatePosition(case):
         rob3Pos[0] = case.payload.decode()
     elif case.topic == "robots/3/y":
         rob3Pos[1] = case.payload.decode()
-        
-         
+    elif case.topic == "robots/4/x":
+        rob4Pos[0] = case.payload.decode()
+    elif case.topic == "robots/4/y":
+        rob4Pos[1] = case.payload.decode()
 
+    print("rob1Pos: " + str(rob1Pos))
+    print("rob2Pos: " + str(rob2Pos))
+    print("rob3Pos: " + str(rob3Pos))
+    print("rob4Pos: " + str(rob4Pos))
 
 def on_publish(client, userdata, mid):
     print("Message published")
@@ -120,6 +163,21 @@ def assignTasks():
 
 
 
+def updateList():
+
+    obstacle_lists = [
+    obstacleList1,
+    obstacleList2,
+    obstacleList3,
+    obstacleList4
+    ]
+
+    for obst_list in obstacle_lists:
+        for obst in obst_list:
+            if obst not in obstacleMasterList:
+                obstacleMasterList.append(obst)
+
+
     
 
 client = mqtt.Client()
@@ -134,13 +192,11 @@ client.loop_start()
 client.publish("connecTest", "Hello, MQTT from Server!")
 
 while True:
-    print('CheckUpdate')
-    print(availableRobotIndex)
-    updateAvailableIndex()
-    print(queue)
-    t.sleep(5)
-    # print('rob1Pos')
-    # print(rob1Pos)
+    # print('CheckUpdate')
+    # print(availableRobotIndex)
+    # updateAvailableIndex()
+    # print(queue)
+    t.sleep(1)
     # print('queue')
     # print(queue)
     # print('robdex')
