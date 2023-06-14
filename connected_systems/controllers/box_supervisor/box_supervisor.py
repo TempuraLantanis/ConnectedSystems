@@ -6,6 +6,31 @@ from collections import deque
 from controller import Supervisor
 
 
+import paho.mqtt.client as mqtt
+import json
+
+
+def on_connect(client, userdata, flags, rc):
+    print("Connected to MQTT broker (WeBots)")
+
+
+def on_message(client, userdata, msg):
+    message = msg.payload.decode()
+    print("Received message: " + message + " from " + msg.topic)
+    print(msg.topic[:5])
+
+    # if msg.topic[:6] == "robots":
+    #     print('msg Pos received')
+    #     updatePosition(msg)
+
+    if msg.topic == "obstacles/masterlist":
+        print('obstacles received')
+
+        print(msg)
+
+        # json.dumps()
+
+
 def add_neighbor(adjacency_list, location, neighbor):
     '''
     Helper function to add a neighbor to a given location in the adjacency list.
@@ -68,8 +93,9 @@ def update_graph(adjacency_list, obstacles, old_location, new_location):
 
 def add_obstacle(adjacency_list, obstacle):
     '''
-    Update the graph when an obstacle is added.
+    Update the graph when an obstacle is added. And send obstacle_list to server
     '''
+    obstacles_local.append(obstacle)
     # Remove the obstacle from the neighbors of its neighbors
     for neighbor in adjacency_list[obstacle]:
         if obstacle in adjacency_list[neighbor]:
@@ -77,6 +103,12 @@ def add_obstacle(adjacency_list, obstacle):
 
     # Update the adjacency list with the new location
     adjacency_list[obstacle].clear()
+
+    for i, name in enumerate(unit_names):
+        if sv_name == name:
+            # print(json_obstacles_server)
+            client.publish(
+                mqtt_obstacles_topics[i], json.dumps(obstacles_local))
 
 
 def create_graph(adjacency_list, obstacles_units):
@@ -128,7 +160,7 @@ def solve(s):
     while q:
         node = q.popleft()
         neighbors = graph[node]
-
+        
         for next in neighbors:
             if not visited[next]:
                 q.append(next)
@@ -208,6 +240,63 @@ dist_sensors = [ds_n, ds_e, ds_s, ds_w]
 for ds in dist_sensors:
     ds.enable(1)
 
+# Names of units
+unit_names = [
+    'box_unit1',
+    'box_unit2',
+    'box_unit3',
+    'box_unit4'
+]
+
+
+# MQTT configuration
+mqtt_broker = "145.137.67.165"  # 'broker_address'
+mqtt_port = 1883
+
+mqtt_robot_x_location_topics = [
+    "robots/1/x",
+    "robots/2/x",
+    "robots/3/x",
+    "robots/4/x",
+]
+mqtt_robot_y_location_topics = [
+    "robots/1/y",
+    "robots/2/y",
+    "robots/3/y",
+    "robots/4/y",
+]
+mqtt_obstacles_topics = [
+    "obstacles/1",
+    "obstacles/2",
+    "obstacles/3",
+    "obstacles/4"
+]
+mqtt_obstacles_master = "obstacles/masterlist"
+
+# subscribe_topics = ["$SYS/broker/clients",
+#                     "obstakels",
+#                     "currentDestination",
+#                     "queuedDestination",
+#                     "robots/1/x",
+#                     "robots/2/x",
+#                     "robots/3/x",
+#                     "robots/4/x",
+#                     "robots/1/y",
+#                     "robots/2/y",
+#                     "robots/3/y",
+#                     "robots/4/y"]
+
+# Create MQTT client
+client = mqtt.Client()
+
+# Set MQTT event callbacks
+client.on_connect = on_connect
+client.on_message = on_message
+client.subscribe("obstacles/masterlist")
+
+# Connect to MQTT broker
+# client.connect(mqtt_broker, mqtt_port, 60)
+client.connect(mqtt_broker, mqtt_port)
 
 # TODO get locations from all the units from the server
 location_unit1 = (0, 0)
@@ -266,22 +355,36 @@ while robot.step(duration) != -1:
     target = (round(sv_target_field[0]),    # round example: 1.0 -> 1
               round(sv_target_field[1]))
 
+    # Publish MQTT messages
+    # message = "Hello, ESP32. This is WeBots!"
+    for i, name in enumerate(unit_names):
+        if sv_name == name:
+            # print(f'cur_pos[{i}] = {cur_pos[i]} ')
+            client.publish(mqtt_robot_x_location_topics[i], cur_pos[0])
+            client.publish(mqtt_robot_y_location_topics[i], cur_pos[1])
+    # print(message)
+
     # Check for obstacles with sensor data
     obstacle = ()
     if distance_north < 1000 and cur_pos[1] != 9:
         obstacle = (cur_pos[0], cur_pos[1] + 1)
+        if obstacle not in obstacles_local:
+            add_obstacle(graph, obstacle)
     if distance_east < 1000 and cur_pos[0] != 9:
         obstacle = (cur_pos[0] + 1, cur_pos[1])
+        if obstacle not in obstacles_local:
+            add_obstacle(graph, obstacle)
     if distance_south < 1000 and cur_pos[1] != 0:
         obstacle = (cur_pos[0], cur_pos[1] - 1)
+        if obstacle not in obstacles_local:
+            add_obstacle(graph, obstacle)
     if distance_west < 1000 and cur_pos[0] != 0:
         obstacle = (cur_pos[0] - 1, cur_pos[1])
+        if obstacle not in obstacles_local:
+            add_obstacle(graph, obstacle)
 
-    # if obstacle detected add to obstacles and remove from graph
-    if obstacle and obstacle not in obstacles_local:
-        obstacles_local.append(obstacle)
-        add_obstacle(graph, obstacle)
-        # TODO send obstacle's location to server
+    # obstacles_server = [tuple(x)
+    #                          for x in json.loads(json_obstacles_local)]
 
     # Calculate path if needed
     if target != cur_pos:
