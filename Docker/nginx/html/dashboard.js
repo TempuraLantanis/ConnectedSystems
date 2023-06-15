@@ -1,5 +1,12 @@
 const host = 'ws://68.183.3.184:1884';
 
+// Simulate a location message for robot1
+const message1 = '2';
+const message2 = '2';
+const topic1 = 'robots/1/x';
+const topic2 = 'robots/1/y';
+const packet1 = {};
+
 const options = {
     keepalive: 50,
     protocolVersion: 4,
@@ -23,10 +30,11 @@ const obstacle_subscriptions = ["obstacles/1",
                       "obstacles/3",
                       "obstacles/4"]
 
-//Connection lukt
+// Connection successful
+
 client.on('connect', () => {
     console.log('Connected to the broker');
-    //Testing
+    // Subscribe to robot and obstacle topics
     robot_subscriptions.forEach(topic => client.subscribe(topic));
     obstacle_subscriptions.forEach(topic => client.subscribe(topic));
 });
@@ -56,23 +64,30 @@ client.on('message', (topic, message, packet) => {
     const robotName = topic.split('/')[0];
     const messageType = topic.split('/')[1];
 
-    testMessage();
-    
+    console.log(robotName);
+    console.log(messageType);
+    // testMessage();
+
     // Extract the target coordinates from the message payload
     const payload = JSON.parse(message.toString());
     const targetX = payload.targetX;
     const targetY = payload.targetY;
 
         if (messageType === 'location') {
-            const [x, y] = message.toString().split(';');
+            // const [x, y] = message.toString().split(';');
+            const [x, y] = message.toString();
             robotData[robotName].location.X = parseInt(x);
             robotData[robotName].location.Y = parseInt(y);
+
+            // Clear the previous position of the robot on the canvas
+            clearRobot(robotName);
+
             switch (robotName) {
                 case 'robot1':
-                    robot1.clearRect(20 * previousX1, 20 * previousY1, 20, 20);
+                    // robot1.clearRect(20 * previousX1, 20 * previousY1, 20, 20);
                     drawRobot1(robotData[robotName].location.X + 1, robotData[robotName].location.Y + 1);
-                    updateBotCoordinates('robot1', robotData[robotName].location.X, robotData[robotName].location.Y);
-                    document.getElementById('robot1Coordinates').textContent = '(' + targetX + ', ' + targetY + ')';
+                    // updateBotCoordinates('robot1', robotData[robotName].location.X, robotData[robotName].location.Y);
+                    // document.getElementById('robot1Coordinates').textContent = '(' + targetX + ', ' + targetY + ')';
                     break;
                 case 'robot2':
                     robot2.clearRect(20 * previousX2, 20 * previousY2, 20, 20);
@@ -130,6 +145,11 @@ client.on('message', (topic, message, packet) => {
             }
             // Call a function to update the webpage with the new obstacle data
             updateObstaclesOnWebpage(obstacleList);
+
+            // Draw the obstacles
+            obstacleList.forEach(function (obstacle) {
+            drawObstacle(obstacle.X, obstacle.Y);
+            });
         }
         console.log(obstacleList);
 });
@@ -147,7 +167,8 @@ function noodstop() {
 
 function updateBotCoordinates(robotName, x, y) {
     const botCoordinatesSpan = document.getElementById(robotName + "Coordinates");
-    botCoordinatesSpan.textContent = " (" + x + ", " + y + ")";
+    botCoordinatesSpan.textContent = `(${x}, ${y})`;
+    // botCoordinatesSpan.textContent = " (" + x + ", " + y + ")";
 }
 
 function sendTarget() {
@@ -257,6 +278,19 @@ function clearCanvas() {
   robot4.clearRect(20 * previousX4, 20 * previousY4, 20, 20);
 }
 
+// Function to clear the previous position of a robot on the canvas
+function clearRobot(robotName) {
+  const context = getCanvasContext(robotName);
+  const { X, Y } = robotData[robotName].location;
+  context.clearRect(20 * X, 20 * Y, 20, 20);
+}
+
+// Function to get the canvas context based on the robot's name
+function getCanvasContext(robotName) {
+  const canvas = document.getElementById('theCanvas');
+  return canvas.getContext('2d');
+}
+
 function drawRobot1(x, y) {
     console.log(x,y);
     robot1.fillStyle = "red";
@@ -306,7 +340,7 @@ function updateObstaclesOnWebpage(obstacles) {
         obstacleListContainer.appendChild(obstacleItem);
     });
     // Append the updated obstacle list to the obstacles container
-    obstaclesContainer.appendChild(obstacleListElement);
+    // obstaclesContainer.appendChild(obstacleListElement);
 }
 
 function testMessage(){
@@ -333,3 +367,8 @@ client.publish('robot/4/obstacle', '0001');
 // Inside the 'message' event handler, after the line "console.log(obstacleList);",
 // add the following code to update the obstacle list on the webpage:
 // updateObstaclesOnWebpage();
+
+
+
+// client.emit('message', topic1, message1, packet1);
+// client.emit('message', topic2, message2, packet1);
