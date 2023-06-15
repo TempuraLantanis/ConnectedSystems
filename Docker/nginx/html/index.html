@@ -3,29 +3,81 @@
 
 <head>
     <title>Dashboard</title>
-    <link rel="stylesheet" type="text/css" href="dashboard.css">
+    <style>
+        #dashboardContainer {
+            display: flex;
+        }
+    
+        #canvasContainer {
+            position: relative;
+        }
+    
+        #coordinatesContainer {
+            position: absolute;
+            top: 0;
+            left: 100%;
+            width: 200px;
+            margin-left: 10px;
+            background-color: rgb(153, 156, 156);
+            padding: 10px;
+        }
+    
+        .red {
+            color: red;
+        }
+    
+        .blue {
+            color: rgb(47, 0, 255);
+        }
+    
+        .green {
+            color: rgb(0, 255, 76);
+        }
+    
+        .yellow {
+            color: rgb(229, 255, 0);
+        }
+    </style>
 </head>
 
 <body>
-    <h1>Dashboard</h1>
-    <div id="map"></div>
-    <h2>Opdrachtenqueue</h2>
-    <ul id="queue"></ul>
-    <h2>Unit Doel instellen</h2>
-    <label for="unit-select">Selecteer unit:</label>
-    <select id="unit-select"></select>
-    <br>
-    <label for="goal-input">Doel:</label>
-    <input type="text" id="goal-input">
-    <button id="set-goal-btn">Instellen</button>
-    <h2>Opdracht toevoegen/verwijderen</h2>
-    <input type="text" id="opdracht-input">
-    <button id="add-opdracht-btn">Toevoegen</button>
-    <button id="remove-opdracht-btn">Verwijderen</button>
-    <h2>Noodstop</h2>
-    <button id="noodstop-btn">Noodstop</button>
+    <div id="dashboardContainer">
+        <div id="canvasContainer">
+            <canvas id="theCanvas" style="background-color: rgb(6, 189, 213)"></canvas>
+            <div id="coordinatesContainer">
+                <div>
+                    Available units:
+                </div>
+                <span id="robot1" class="red">robot1:</span>
+                <span id="robot1Coordinates"></span><br>
+                <span id="robot2" class="green">robot2:</span>
+                <span id="robot2Coordinates"></span><br>
+                <span id="robot3" class="blue">robot3:</span>
+                <span id="robot3Coordinates"></span><br>
+                <span id="robot4" class="yellow">robot4:</span>
+                <span id="robot4Coordinates"></span>
 
-    <script src="https://cdn.jsdelivr.net/npm/paho-mqtt@1.1.0/dist/mqtt.min.js"></script>
+            </div>
+        </div>
+    </div>  
+    <div id="myDiv" style="background-color: darkgray">
+        <span>Send </span>
+        <input type="text" id="unit" size="6" placeholder="Unit">
+        <span> to location</span>
+        <input type="text" id="target" size="6" placeholder="x;y">
+        <button onclick="sendTarget()">Send command</button>
+    </div>
+    <div id="myDiv1" style="background-color: lightgrey;">
+        <span>Pick up from </span>
+        <input type="text" id="origin" size="6" placeholder="x;y">
+        <span> and deliver to </span>
+        <input type="text" id="target2" size="6" placeholder="x;y">
+        <button onclick="addToQueue()">Add to queue</button>
+    </div>
+    <div id="myDiv2" style="background-color: darkgray">
+        <button onclick="noodstop()">STOP</button>
+    </div>
+    <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
     <script src="dashboard.js"></script>
 </body>
 

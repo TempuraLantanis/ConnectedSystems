@@ -1,37 +1,34 @@
-body {
-    font-family: Arial, sans-serif;
-    margin: 20px;
-}
+  #dashboardContainer {
+        display: flex;
+    }
 
-h1,
-h2 {
-    margin-bottom: 10px;
-}
+    #canvasContainer {
+        position: relative;
+    }
 
-#map {
-    width: 400px;
-    height: 400px;
-    border: 1px solid black;
-    margin-bottom: 20px;
-}
+    #coordinatesContainer {
+        position: absolute;
+        top: 0;
+        left: 100%;
+        width: 200px;
+        margin-left: 10px;
+        background-color: rgb(153, 156, 156);
+        padding: 10px;
+    }
 
-ul {
-    padding-left: 20px;
-}
+    .red {
+        color: red;
+    }
 
-li {
-    margin-bottom: 5px;
-}
+    .blue {
+        color: rgb(47, 0, 255);
+    }
 
-label {
-    display: block;
-    margin-bottom: 5px;
-}
+    .green {
+        color: rgb(0, 255, 76);
+    }
 
-input[type="text"] {
-    margin-right: 10px;
-}
+    .yellow {
+        color: rgb(229, 255, 0);
+    }
 
-button {
-    margin-top: 10px;
-}
