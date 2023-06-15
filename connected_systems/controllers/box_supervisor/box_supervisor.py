@@ -16,19 +16,73 @@ def on_connect(client, userdata, flags, rc):
 
 def on_message(client, userdata, msg):
     message = msg.payload.decode()
-    print("Received message: " + message + " from " + msg.topic)
-    print(msg.topic[:5])
+    # print("Received message: " + message + " from " + msg.topic)
+    # print(msg.topic[:5])
 
-    # if msg.topic[:6] == "robots":
-    #     print('msg Pos received')
-    #     updatePosition(msg)
+    if msg.topic[:6] == "robots":
+        # print('msg Pos received')
+        updatePosition(msg)
 
     if msg.topic == "obstacles/masterlist":
-        print('obstacles received')
+        # print('obstacles received')
 
-        print(msg)
+        # print(msg)
+        pass
 
         # json.dumps()
+
+
+def updatePosition(case):
+    global location_unit1
+    global location_unit2
+    global location_unit3
+    global location_unit4
+    temp_location = ()
+    locations_units = [
+        location_unit1,
+        location_unit2,
+        location_unit3,
+        location_unit4
+    ]
+    # topics
+    unit_index = -1
+    # print(f'unit_2 = {location_unit2} ')
+    if case.topic == "robots/1/x":
+        temp_location = location_unit1
+        location_unit1 = (int(case.payload.decode()), location_unit1[1])
+        unit_index = 0
+    elif case.topic == "robots/1/y":
+        temp_location = location_unit1
+        location_unit1 = (location_unit1[0], int(case.payload.decode()))
+        unit_index = 0
+    elif case.topic == "robots/2/x":
+        temp_location = location_unit2
+        location_unit2 = (int(case.payload.decode()), location_unit2[1])
+        unit_index = 1
+    elif case.topic == "robots/2/y":
+        temp_location = location_unit2
+        location_unit2 = (location_unit2[0], int(case.payload.decode()))
+        unit_index = 1
+    elif case.topic == "robots/3/x":
+        temp_location = location_unit3
+        location_unit3 = (int(case.payload.decode()), location_unit3[1])
+        unit_index = 2
+    elif case.topic == "robots/3/y":
+        temp_location = location_unit3
+        location_unit3 = (location_unit3[0], int(case.payload.decode()))
+        unit_index = 2
+    elif case.topic == "robots/4/x":
+        temp_location = location_unit4
+        location_unit4 = (int(case.payload.decode()), location_unit4[1])
+        unit_index = 3
+    elif case.topic == "robots/4/y":
+        temp_location = location_unit4
+        location_unit4 = (location_unit4[0], int(case.payload.decode()))
+        unit_index = 3
+
+    global graph
+    graph = update_graph(graph, obstacles_local,
+                         temp_location, locations_units[unit_index])
 
 
 def add_neighbor(adjacency_list, location, neighbor):
@@ -55,6 +109,7 @@ def update_graph(adjacency_list, obstacles, old_location, new_location):
     - old_location: The old location of the moved unit
     - new_location: The new location of the moved unit
     '''
+    # TODO remove from obstacles if moved
     # Add unit's old location back to its neighbors
     if (old_location[0] + 1 != new_location[0] and
         old_location[0] + 1 <= 9 and
@@ -107,6 +162,11 @@ def add_obstacle(adjacency_list, obstacle):
     for i, name in enumerate(unit_names):
         if sv_name == name:
             # print(json_obstacles_server)
+            # TODO: if not in other_units_locations
+            obstacles_publish = []
+            # for obst in obstacles_local:
+            #     if obst not in other_units:
+            # obstacles_publish.append(obst)
             client.publish(
                 mqtt_obstacles_topics[i], json.dumps(obstacles_local))
 
@@ -160,7 +220,7 @@ def solve(s):
     while q:
         node = q.popleft()
         neighbors = graph[node]
-        
+
         for next in neighbors:
             if not visited[next]:
                 q.append(next)
@@ -240,6 +300,26 @@ dist_sensors = [ds_n, ds_e, ds_s, ds_w]
 for ds in dist_sensors:
     ds.enable(1)
 
+global location_unit1
+global location_unit2
+global location_unit3
+global location_unit4
+location_unit1 = (0, 0)
+location_unit2 = (9, 0)
+location_unit3 = (9, 9)
+location_unit4 = (0, 9)
+
+other_units = [
+    location_unit1,
+    location_unit2,
+    location_unit3,
+    location_unit4,
+]
+this_unit_pos = supervisorNode.getPosition()
+# Remove unit itself from other_units
+other_units.remove(
+    (round(10 * this_unit_pos[0]), round(10 * this_unit_pos[1])))
+
 # Names of units
 unit_names = [
     'box_unit1',
@@ -248,9 +328,8 @@ unit_names = [
     'box_unit4'
 ]
 
-
 # MQTT configuration
-mqtt_broker = "145.137.67.165"  # 'broker_address'
+mqtt_broker = "68.183.3.184"  # 'broker_address'
 mqtt_port = 1883
 
 mqtt_robot_x_location_topics = [
@@ -292,29 +371,21 @@ client = mqtt.Client()
 # Set MQTT event callbacks
 client.on_connect = on_connect
 client.on_message = on_message
-client.subscribe("obstacles/masterlist")
 
 # Connect to MQTT broker
 # client.connect(mqtt_broker, mqtt_port, 60)
 client.connect(mqtt_broker, mqtt_port)
+client.loop_start()
+
+# Subscribe to other units' locations
 
 # TODO get locations from all the units from the server
-location_unit1 = (0, 0)
-location_unit2 = (9, 0)
-location_unit3 = (9, 9)
-location_unit4 = (0, 9)
+for i, name in enumerate(unit_names):
+    if sv_name != name:
+        client.subscribe(mqtt_robot_x_location_topics[i])
+        client.subscribe(mqtt_robot_y_location_topics[i])
+client.subscribe("obstacles/masterlist")
 
-
-other_units = [
-    location_unit1,
-    location_unit2,
-    location_unit3,
-    location_unit4,
-]
-this_unit_pos = supervisorNode.getPosition()
-# Remove unit itself from other_units
-other_units.remove(
-    (round(10 * this_unit_pos[0]), round(10 * this_unit_pos[1])))
 
 obstacles_local = []
 obstacles_server = []
@@ -385,6 +456,8 @@ while robot.step(duration) != -1:
 
     # obstacles_server = [tuple(x)
     #                          for x in json.loads(json_obstacles_local)]
+    if sv_name == "box_unit1":
+        print(f'{sv_name} Unit 2: {location_unit2} ')
 
     # Calculate path if needed
     if target != cur_pos:
