@@ -39,120 +39,122 @@ client.on('connect', () => {
     obstacle_subscriptions.forEach(topic => client.subscribe(topic));
 });
 
+
+let obstacleList = []; // Declare obstacleList 
+
 let robotData = {
-    robot1: {
-        location: { X: -1, Y: -1 },
-        obstacles: "0000"
+  "robots": {
+    "1": {
+      "x": 0,
+      "y": 0
     },
-    robot2: {
-        location: { X: -1, Y: -1 },
-        obstacles: "0000"
+    "2": {
+      "x": 0,
+      "y": 0
     },
-    robot3: {
-        location: { X: -1, Y: -1 },
-        obstacles: "0000"
+    "3": {
+      "x": 0,
+      "y": 0
     },
-    robot4: {
-        location: { X: -1, Y: -1 },
-        obstacles: "0000"
+    "4": {
+      "x": 0,
+      "y": 0
     }
+  },
+  "obstacles": {
+    "1": {},
+    "2": {},
+    "3": {},
+    "4": {}
+  }
 };
 
 client.on('message', (topic, message, packet) => {
     console.log("Message received " + message + " on topic " + topic);
 
-    const robotName = topic.split('/')[0];
-    const messageType = topic.split('/')[1];
+    const messageType = topic.split('/')[0];
+    const robotName = topic.split('/')[1];
+    const attribute = topic.split('/')[2];
 
+    console.log("robotName");
     console.log(robotName);
+    console.log("messageType");
     console.log(messageType);
-    // testMessage();
+    console.log("attribute");
+    console.log(attribute);
 
-    // Extract the target coordinates from the message payload
     const payload = JSON.parse(message.toString());
-    const targetX = payload.targetX;
-    const targetY = payload.targetY;
 
-        if (messageType === 'location') {
-            // const [x, y] = message.toString().split(';');
-            const [x, y] = message.toString();
-            robotData[robotName].location.X = parseInt(x);
-            robotData[robotName].location.Y = parseInt(y);
+    if (messageType === 'robots') {
+        robotData.robots[robotName][attribute] = payload;
 
-            // Clear the previous position of the robot on the canvas
-            clearRobot(robotName);
+        // clearRobot(robotName);
 
-            switch (robotName) {
-                case 'robot1':
-                    // robot1.clearRect(20 * previousX1, 20 * previousY1, 20, 20);
-                    drawRobot1(robotData[robotName].location.X + 1, robotData[robotName].location.Y + 1);
-                    // updateBotCoordinates('robot1', robotData[robotName].location.X, robotData[robotName].location.Y);
-                    // document.getElementById('robot1Coordinates').textContent = '(' + targetX + ', ' + targetY + ')';
-                    break;
-                case 'robot2':
-                    robot2.clearRect(20 * previousX2, 20 * previousY2, 20, 20);
-                    drawRobot2(robotData[robotName].location.X + 1, robotData[robotName].location.Y + 1);
-                    updateBotCoordinates('robot2', robotData[robotName].location.X, robotData[robotName].location.Y);
-                    document.getElementById('robot2Coordinates').textContent = '(' + targetX + ', ' + targetY + ')';
-                    break;
-                case 'robot3':
-                    robot3.clearRect(20 * previousX3, 20 * previousY3, 20, 20);
-                    drawRobot3(robotData[robotName].location.X + 1, robotData[robotName].location.Y + 1);
-                    updateBotCoordinates('robot3', robotData[robotName].location.X, robotData[robotName].location.Y);
-                     document.getElementById('robot3Coordinates').textContent = '(' + targetX + ', ' + targetY + ')';
-                    break;
-                case 'robot4':
-                    robot4.clearRect(20 * previousX4, 20 * previousY4, 20, 20);
-                    drawRobot4(robotData[robotName].location.X + 1, robotData[robotName].location.Y + 1);
-                    updateBotCoordinates('robot4', robotData[robotName].location.X, robotData[botNarobotNameme].location.Y);
-                    document.getElementById('robot4Coordinates').textContent = '(' + targetX + ', ' + targetY + ')';
-                    break;
-                default:
-                    break;
-            }
-
-        } else if (messageType === 'obstacle') {
-            
-
-            robotData[robotName].obstacles = message.toString();
-            let obstacles = robotData[robotName].obstacles;
-            let obsNorth = obstacles.charAt(0);
-            let obsEast = obstacles.charAt(1);
-            let obsSouth = obstacles.charAt(2);
-            let obsWest = obstacles.charAt(3);
-
-            // Clear the obstacleList array before updating with new obstacles
-            obstacleList.length = 0;
-
-            if (obsNorth == '1'){
-                obstacleList.push({ X: robotData[robotName].location.X, Y: robotData[robotName].location.Y - 1 });
-                drawObstacle(robotData[robotName].location.X + 1, robotData[robotName].location.Y - 1 + 1);
-            }
-            if (obsEast == '1'){
-                obstacleList.push({ X: robotData[robotName].location.X + 1, Y: robotData[robotName].location.Y});
-                drawObstacle(robotData[robotName].location.X + 1 + 1, robotData[robotName].location.Y + 1);
-
-            }
-            if (obsSouth == '1'){
-                obstacleList.push({ X: robotData[robotName].location.X, Y: robotData[robotName].location.Y + 1});
-                drawObstacle(robotData[robotName].location.X + 1, robotData[robotName].location.Y + 1 + 1);
-
-            }
-            if (obsWest == '1'){
-                obstacleList.push({ X: robotData[robotName].location.X - 1, Y: robotData[robotName].location.Y});
-                drawObstacle(robotData[robotName].location.X + 1 - 1, robotData[robotName].location.Y + 1);
-
-            }
-            // Call a function to update the webpage with the new obstacle data
-            updateObstaclesOnWebpage(obstacleList);
-
-            // Draw the obstacles
-            obstacleList.forEach(function (obstacle) {
-            drawObstacle(obstacle.X, obstacle.Y);
-            });
+        switch (robotName) {
+            case '1':
+                robot1.clearRect(20 * previousX1, 20 * previousY1, 20, 20);
+                drawRobot1(robotData.robots[robotName].x + 1, robotData.robots[robotName].y + 1);
+                updateBotCoordinates('robot1', robotData.robots[robotName].x, robotData.robots[robotName].y);
+                document.getElementById('robot1Coordinates').textContent = '(' + robotData.robots[robotName].x + ', ' + robotData.robots[robotName].y + ')';
+                break;
+            case '2':
+                robot2.clearRect(20 * previousX2, 20 * previousY2, 20, 20);
+                drawRobot2(robotData.robots[robotName].x + 1, robotData.robots[robotName].y + 1);
+                // updateBotCoordinates('robot2', robotData.robots[robotName].x, robotData.robots[robotName].y);
+                document.getElementById('robot2Coordinates').textContent = '(' + robotData.robots[robotName].x + ', ' + robotData.robots[robotName].y + ')';
+                break;
+            case '3':
+                robot3.clearRect(20 * previousX3, 20 * previousY3, 20, 20);
+                drawRobot3(robotData.robots[robotName].x + 1, robotData.robots[robotName].y + 1);
+                // updateBotCoordinates('robot3', robotData.robots[robotName].x, robotData.robots[robotName].y);
+                document.getElementById('robot3Coordinates').textContent = '(' + robotData.robots[robotName].x + ', ' + robotData.robots[robotName].y + ')';
+                break;
+            case '4':
+                robot4.clearRect(20 * previousX4, 20 * previousY4, 20, 20);
+                drawRobot4(robotData.robots[robotName].x + 1, robotData.robots[robotName].y + 1);
+                // updateBotCoordinates('robot4', robotData.robots[robotName].x, robotData.robots[robotName].y);
+                document.getElementById('robot4Coordinates').textContent = '(' + robotData.robots[robotName].x + ', ' + robotData.robots[robotName].y + ')';
+                break;
+            default:
+                break;
         }
-        console.log(obstacleList);
+    } else if (messageType === 'obstacles') {
+        robotData.obstacles[robotName] = message.toString();
+        let obstacles = robotData.obstacles[robotName];
+        let obsNorth = obstacles.charAt(0);
+        let obsEast = obstacles.charAt(1);
+        let obsSouth = obstacles.charAt(2);
+        let obsWest = obstacles.charAt(3);
+
+        obstacleList.length = 0;
+
+        if (obsNorth === '1') {
+            obstacleList.push({ X: robotData.robots[robotName].x, Y: robotData.robots[robotName].y - 1 });
+            drawObstacle(robotData.robots[robotName].x + 1, robotData.robots[robotName].y - 1 + 1);
+        }
+        if (obsEast === '1') {
+            obstacleList.push({ X: robotData.robots[robotName].x + 1, Y: robotData.robots[robotName].y });
+            drawObstacle(robotData.robots[robotName].x + 1 + 1, robotData.robots[robotName].y + 1);
+        }
+        if (obsSouth === '1') {
+            obstacleList.push({ X: robotData.robots[robotName].x, Y: robotData.robots[robotName].y + 1 });
+            drawObstacle(robotData.robots[robotName].x + 1, robotData.robots[robotName].y + 1 + 1);
+        }
+        if (obsWest === '1') {
+            obstacleList.push({ X: robotData.robots[robotName].x - 1, Y: robotData.robots[robotName].y });
+            drawObstacle(robotData.robots[robotName].x + 1 - 1, robotData.robots[robotName].y + 1);
+        }
+
+        updateObstaclesOnWebpage(obstacleList);
+
+        obstacleList.forEach(function (obstacle) {
+            drawObstacle(obstacle.X, obstacle.Y);
+        });
+    }
+
+    console.log(obstacleList);
 });
+
 
 //Connection lukt niet
 client.on('error', (err) => {
@@ -243,10 +245,6 @@ function addToQueue() {
   document.getElementById("target2Y").value = "";
 }
 
-let obstacleList = [];
-
-
-
 const canvas = document.getElementById("theCanvas");
 const border = canvas.getContext("2d");
 const obstacles = canvas.getContext("2d");
@@ -292,6 +290,7 @@ function getCanvasContext(robotName) {
 }
 
 function drawRobot1(x, y) {
+    console.log("Robot-1");
     console.log(x,y);
     robot1.fillStyle = "red";
     robot1.drawBlock(x, y);
@@ -300,6 +299,7 @@ function drawRobot1(x, y) {
 }
 
 function drawRobot2(x, y) {
+    console.log("Robot-2");
     robot2.fillStyle = "green";
     robot2.drawBlock(x, y);
     previousX2 = x;
@@ -307,6 +307,7 @@ function drawRobot2(x, y) {
 }
 
 function drawRobot3(x, y) {
+    console.log("Robot-3");
     robot3.fillStyle = "blue";
     robot3.drawBlock(x, y);
     previousX3 = x;
@@ -314,7 +315,7 @@ function drawRobot3(x, y) {
 }
 
 function drawRobot4(x, y) {
-    console.log("AYO");
+    console.log("Robot-4");
     robot4.fillStyle = "yellow";
     robot4.drawBlock(x, y);
     previousX4 = x;
@@ -327,10 +328,7 @@ function drawObstacle(x, y) {
 }
 
 function updateObstaclesOnWebpage(obstacles) {
-    // Here, you can manipulate the webpage's HTML or DOM elements
-    // to display the obstacles in the desired format
-
-    // Example: Display obstacles as a list
+    // Display obstacles as a list
     const obstacleListContainer = document.getElementById('obstacleList');
     obstacleListContainer.innerHTML = ''; // Clear previous obstacles
 
@@ -339,18 +337,16 @@ function updateObstaclesOnWebpage(obstacles) {
         obstacleItem.textContent = `X: ${obstacle.X}, Y: ${obstacle.Y}`;
         obstacleListContainer.appendChild(obstacleItem);
     });
-    // Append the updated obstacle list to the obstacles container
-    // obstaclesContainer.appendChild(obstacleListElement);
 }
 
 function testMessage(){
-  // Example test messages for location
+  // test messages for location
 client.publish('robot/1/location', JSON.stringify({ targetX: 10, targetY: 20 }));
 client.publish('robot/2/location', JSON.stringify({ targetX: 5, targetY: 15 }));
 client.publish('robot/3/location', JSON.stringify({ targetX: 8, targetY: 12 }));
 client.publish('robot/4/location', JSON.stringify({ targetX: 3, targetY: 7 }));
 
-// Example test messages for obstacle
+// test messages for obstacle
 client.publish('robot/1/obstacle', '1000');
 client.publish('robot/2/obstacle', '0100');
 client.publish('robot/3/obstacle', '0010');
