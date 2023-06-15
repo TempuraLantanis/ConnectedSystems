@@ -56,7 +56,9 @@ client.on('message', (topic, message, packet) => {
     const robotName = topic.split('/')[0];
     const messageType = topic.split('/')[1];
 
-      // Extract the target coordinates from the message payload
+    testMessage();
+    
+    // Extract the target coordinates from the message payload
     const payload = JSON.parse(message.toString());
     const targetX = payload.targetX;
     const targetY = payload.targetY;
