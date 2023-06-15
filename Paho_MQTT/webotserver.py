@@ -2,7 +2,7 @@ import paho.mqtt.client as mqtt
 import time as t
 import json
 
-broker = "localhost"
+broker = "68.183.3.184"
 port = 1883
 
 
@@ -13,7 +13,7 @@ queue = []
 
 availableRobotIndex = [False, False, False, False];
 
-
+locationhistory = set()
 
 rob1Pos = [None,None]
 rob2Pos = [None,None]
@@ -54,6 +54,13 @@ def on_message(client,userdata,msg):
     if msg.topic[:6] == "robots":
         print('msg Pos received')
         updatePosition(msg)
+        positions_x = [rob1Pos[0],rob2Pos[0],rob3Pos[0],rob4Pos[0]]
+        positions_y = [rob1Pos[1],rob2Pos[1],rob3Pos[1],rob4Pos[1]]
+        
+        for i, pos_x in enumerate(positions_x):
+            if pos_x and positions_y[i]:
+                locationhistory.add((int(pos_x),int(positions_y[i])))
+        
 
 
     if msg.topic == "queuedDestination":
@@ -174,7 +181,7 @@ def updateList():
 
     for obst_list in obstacle_lists:
         for obst in obst_list:
-            if obst not in obstacleMasterList:
+            if obst not in obstacleMasterList and tuple(obst) not in locationhistory:
                 obstacleMasterList.append(obst)
 
 
@@ -196,6 +203,7 @@ while True:
     # print(availableRobotIndex)
     # updateAvailableIndex()
     # print(queue)
+    print(locationhistory)
     t.sleep(1)
     # print('queue')
     # print(queue)
