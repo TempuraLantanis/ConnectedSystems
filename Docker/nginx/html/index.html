@@ -2,19 +2,83 @@
 <html>
 
 <head>
-    <title>My Website</title>
-    <link rel="stylesheet" type="text/css" href="styles.css">
+    <title>Dashboard</title>
+    <style>
+        #dashboardContainer {
+            display: flex;
+        }
+    
+        #canvasContainer {
+            position: relative;
+        }
+    
+        #coordinatesContainer {
+            position: absolute;
+            top: 0;
+            left: 100%;
+            width: 200px;
+            margin-left: 10px;
+            background-color: rgb(153, 156, 156);
+            padding: 10px;
+        }
+    
+        .red {
+            color: red;
+        }
+    
+        .blue {
+            color: rgb(47, 0, 255);
+        }
+    
+        .green {
+            color: rgb(0, 255, 76);
+        }
+    
+        .yellow {
+            color: rgb(229, 255, 0);
+        }
+    </style>
 </head>
 
 <body>
-    <div class="container">
-        <h1>Welcome to My Website</h1>
-        <p>This is a simple example of an index.html file with CSS and JavaScript.</p>
+    <div id="dashboardContainer">
+        <div id="canvasContainer">
+            <canvas id="theCanvas" style="background-color: rgb(6, 189, 213)"></canvas>
+            <div id="coordinatesContainer">
+                <div>
+                    Available units:
+                </div>
+                <span id="robot1" class="red">robot1:</span>
+                <span id="robot1Coordinates"></span><br>
+                <span id="robot2" class="green">robot2:</span>
+                <span id="robot2Coordinates"></span><br>
+                <span id="robot3" class="blue">robot3:</span>
+                <span id="robot3Coordinates"></span><br>
+                <span id="robot4" class="yellow">robot4:</span>
+                <span id="robot4Coordinates"></span>
 
-        <button onclick="myFunction()">Click me</button>
-
-        <script src="script.js"></script>
+            </div>
+        </div>
+    </div>  
+    <div id="myDiv" style="background-color: darkgray">
+        <span>Send </span>
+        <input type="text" id="unit" size="6" placeholder="Unit">
+        <span> to location</span>
+        <input type="text" id="target" size="6" placeholder="x;y">
+        <button onclick="sendTarget()">Send command</button>
     </div>
+    <div id="myDiv1" style="background-color: lightgrey;">
+        <span>Pick up from </span>
+        <input type="text" id="origin" size="6" placeholder="x;y">
+        <span> and deliver to </span>
+        <input type="text" id="target2" size="6" placeholder="x;y">
+        <button onclick="addToQueue()">Add to queue</button>
+    </div>
+    <div id="myDiv2" style="background-color: darkgray">
+        <button onclick="noodstop()">STOP</button>
+    </div>
+    <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+    <script src="dashboard.js"></script>
 </body>
 
 </html>
