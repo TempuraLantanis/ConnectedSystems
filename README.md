@@ -9,6 +9,25 @@ The project was developed by the following students:
 2. Terrence Zhong (Student ID: 1028516)
 3. Giovanny Marchena (Student ID: 1021941)
 
+## Description
+
+ConnectedSystems is a collaborative project developed by Sam Yost, Terrence Zhong, and Giovanny Marchena. The project aims to create a connected system using the MQTT protocol for efficient and reliable communication between Webots.
+
+## Features
+
+- MQTT Protocol: The system leverages the MQTT (Message Queuing Telemetry Transport) protocol, a lightweight messaging protocol, to facilitate seamless communication between different devices and components. MQTT ensures efficient message exchange and supports reliable communication even in low-bandwidth or unreliable network environments.
+
+- Robot Tracking: The system enables real-time tracking and monitoring of multiple robots. Using MQTT topics such as `/robots/<id>/locatie/x`, `/robots/<id>/locatie/y`, `/robots/<id>/richting/x`, and `/robots/<id>/richting/y`, the system retrieves and updates the location and direction of each robot. This information can be utilized for coordination, navigation, and control purposes.
+
+- Obstacle Detection: The system incorporates obstacle detection and sharing functionality. MQTT topics such as `/obstacles/<type>/<id>/locatie/x` and `/obstacles/<type>/<id>/locatie/y` provide the coordinates of detected obstacles. Additionally, a masterlist topic (`obstacles/masterlist`) is used to consolidate and update the obstacle data from all connected robots. This masterlist information can be utilized for pathfinding algorithms and obstacle avoidance strategies.
+
+- Queue Management: The system includes a queue management system for organizing and prioritizing tasks and destinations. The `queued-destination/queue` topic receives incoming target destinations that are assigned to the robots by the server. This queue-based approach ensures orderly execution of tasks and efficient allocation of resources.
+
+- Pathfinding Algorithm: The system incorporates a pathfinding algorithm based on breadth-first search (BFS). The BFS algorithm is utilized to calculate the shortest path between two locations, considering the presence of obstacles. This algorithm ensures efficient navigation for the robots, optimizing their movement and minimizing travel time.
+
+
+- Noodstop Functionality: The system incorporates a "noodstop" functionality, which allows for an emergency stop of all running processes. When a "Y" message is published to the "noodstop" topic, the system responds by stopping all program execution. The system continuously monitors the "noodstop" topic, ensuring prompt response to emergency stop requests.
+
 
 ### Protocol: MQTT
 
