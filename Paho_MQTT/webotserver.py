@@ -82,7 +82,7 @@ def on_message(client,userdata,msg):
 
     if msg.topic == "queued-destination/target":
         payload = json.loads(msg.payload.decode())
-        # if payload.
+        # if payload.//
         print(f'payload received: {payload} ')
         robotID = int(payload['robotunit']['id'])
         target = [payload['target']['x'],payload['target']['y']]
