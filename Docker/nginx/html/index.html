@@ -37,6 +37,27 @@
         .yellow {
             color: rgb(229, 255, 0);
         }
+        #obstaclesContainer {
+            border: 1px solid #ccc;
+            padding: 10px;
+            margin-top: 10px;
+            font-family: Arial, sans-serif;
+        }
+
+        #obstaclesContainer p {
+            margin: 0;
+        }
+
+        #obstaclesContainer .obstacle {
+            margin-bottom: 5px;
+        }
+        #theCanvas {
+            background-color: rgb(6, 189, 213);
+            width: 400px;
+            height: 400px;
+            border: 1px solid #ccc;
+        }
+
     </style>
 </head>
 
@@ -44,6 +65,9 @@
     <div id="dashboardContainer">
         <div id="canvasContainer">
             <canvas id="theCanvas" style="background-color: rgb(6, 189, 213)"></canvas>
+            <div id="obstaclesContainer">
+                <ul id="obstacleList"></ul> <!-- Add this empty <ul> element -->
+            </div>
             <div id="coordinatesContainer">
                 <div>
                     Available units:
@@ -62,16 +86,20 @@
     </div>  
     <div id="myDiv" style="background-color: darkgray">
         <span>Send </span>
-        <input type="text" id="unit" size="6" placeholder="Unit">
+        <!-- <input type="text" id="unit" size="6" placeholder="Unit"> -->
+        <input type="text" id="unit" size="6" placeholder="robot1">
         <span> to location</span>
-        <input type="text" id="target" size="6" placeholder="x;y">
+        <input type="text" id="targetX" size="6" placeholder="x">
+        <input type="text" id="targetY" size="6" placeholder="y">
         <button onclick="sendTarget()">Send command</button>
     </div>
     <div id="myDiv1" style="background-color: lightgrey;">
         <span>Pick up from </span>
-        <input type="text" id="origin" size="6" placeholder="x;y">
+        <input type="text" id="originX" size="6" placeholder="x">
+        <input type="text" id="originY" size="6" placeholder="y">
         <span> and deliver to </span>
-        <input type="text" id="target2" size="6" placeholder="x;y">
+        <input type="text" id="target2X" size="6" placeholder="x">
+        <input type="text" id="target2Y" size="6" placeholder="y">
         <button onclick="addToQueue()">Add to queue</button>
     </div>
     <div id="myDiv2" style="background-color: darkgray">
