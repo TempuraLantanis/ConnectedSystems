@@ -71,6 +71,11 @@ def on_message(client,userdata,msg):
     if msg.topic == "queued-destination":
         print('queued destination received')
         queue.append(json.loads(msg.payload.decode()))
+
+    if msg.topic[5:] == "d-destination/":
+
+        print('aaaa')
+        
     
     if msg.topic [:9] == "obstacles":
         print('obstacles received')
@@ -189,15 +194,9 @@ def executeTasks():
             if checkIfArrived(i+1):
                newdestination =  matchQueue(i+1).pop(0)
                destinations[i] = newdestination
-               client.publish("queued-destination/"+str(i+1), json.dumps(newdestination))
+               client.publish("target-destination/"+str(i+1), json.dumps(newdestination))
                 
         
-                
-
-    
-    
-            
-            
             
 
 
@@ -232,6 +231,8 @@ client.loop_start()
 client.publish("connecTest", "Hello, MQTT from Server!")
 
 while True:
+    assignTasks()
+    executeTasks()
     # print('CheckUpdate')
     # print(availableRobotIndex)
     # updateAvailableIndex()
