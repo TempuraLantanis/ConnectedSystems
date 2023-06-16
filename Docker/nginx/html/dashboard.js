@@ -17,18 +17,15 @@ const options = {
 const client = mqtt.connect(host, options);
 
 const robot_subscriptions = ["robots/1/x",
-                      "robots/1/y",   
-                      "robots/2/x",
-                      "robots/2/y", 
-                      "robots/3/x",
-                      "robots/3/y", 
-                      "robots/4/x",
-                      "robots/4/y"]
+    "robots/1/y",
+    "robots/2/x",
+    "robots/2/y",
+    "robots/3/x",
+    "robots/3/y",
+    "robots/4/x",
+    "robots/4/y"]
 
-const obstacle_subscriptions = ["obstacles/1",
-                      "obstacles/2",   
-                      "obstacles/3",
-                      "obstacles/4"]
+const obstacles_master_topic = "obstacles/masterlist";
 
 // Connection successful
 
@@ -36,37 +33,37 @@ client.on('connect', () => {
     console.log('Connected to the broker');
     // Subscribe to robot and obstacle topics
     robot_subscriptions.forEach(topic => client.subscribe(topic));
-    obstacle_subscriptions.forEach(topic => client.subscribe(topic));
+    client.subscribe(obstacles_master_topic);
 });
 
 
 let obstacleList = []; // Declare obstacleList 
 
 let robotData = {
-  "robots": {
-    "1": {
-      "x": 0,
-      "y": 0
+    "robots": {
+        "1": {
+            "x": 0,
+            "y": 0
+        },
+        "2": {
+            "x": 0,
+            "y": 0
+        },
+        "3": {
+            "x": 0,
+            "y": 0
+        },
+        "4": {
+            "x": 0,
+            "y": 0
+        }
     },
-    "2": {
-      "x": 0,
-      "y": 0
-    },
-    "3": {
-      "x": 0,
-      "y": 0
-    },
-    "4": {
-      "x": 0,
-      "y": 0
+    "obstacles": {
+        "1": {},
+        "2": {},
+        "3": {},
+        "4": {}
     }
-  },
-  "obstacles": {
-    "1": {},
-    "2": {},
-    "3": {},
-    "4": {}
-  }
 };
 
 client.on('message', (topic, message, packet) => {
@@ -119,37 +116,11 @@ client.on('message', (topic, message, packet) => {
                 break;
         }
     } else if (messageType === 'obstacles') {
-        robotData.obstacles[robotName] = message.toString();
-        let obstacles = robotData.obstacles[robotName];
-        let obsNorth = obstacles.charAt(0);
-        let obsEast = obstacles.charAt(1);
-        let obsSouth = obstacles.charAt(2);
-        let obsWest = obstacles.charAt(3);
-
-        obstacleList.length = 0;
-
-        if (obsNorth === '1') {
-            obstacleList.push({ X: robotData.robots[robotName].x, Y: robotData.robots[robotName].y - 1 });
-            drawObstacle(robotData.robots[robotName].x + 1, robotData.robots[robotName].y - 1 + 1);
-        }
-        if (obsEast === '1') {
-            obstacleList.push({ X: robotData.robots[robotName].x + 1, Y: robotData.robots[robotName].y });
-            drawObstacle(robotData.robots[robotName].x + 1 + 1, robotData.robots[robotName].y + 1);
-        }
-        if (obsSouth === '1') {
-            obstacleList.push({ X: robotData.robots[robotName].x, Y: robotData.robots[robotName].y + 1 });
-            drawObstacle(robotData.robots[robotName].x + 1, robotData.robots[robotName].y + 1 + 1);
-        }
-        if (obsWest === '1') {
-            obstacleList.push({ X: robotData.robots[robotName].x - 1, Y: robotData.robots[robotName].y });
-            drawObstacle(robotData.robots[robotName].x + 1 - 1, robotData.robots[robotName].y + 1);
-        }
-
+        console.log("obstacles received:");
+        obstacleList = JSON.parse(message.toString())
+        console.log(obstacleList);
+        obstacleList.forEach(obst => drawObstacle(obst[0] + 1, obst[1] + 1))
         updateObstaclesOnWebpage(obstacleList);
-
-        obstacleList.forEach(function (obstacle) {
-            drawObstacle(obstacle.X, obstacle.Y);
-        });
     }
 
     console.log(obstacleList);
@@ -177,25 +148,25 @@ function sendTarget() {
     let unit = document.getElementById("unit").value;
     let targetX = document.getElementById("targetX").value;
     let targetY = document.getElementById("targetY").value;
-    if (unit == "robot1"){
+    if (unit == "robot1") {
         client.publish("robots/1/x", targetX);
         client.publish("robots/1/y", targetY);
         // client.publish(targetX,targetY);
         console.log("Robot1-Target Set");
     }
-    if (unit == "robot2"){
+    if (unit == "robot2") {
         client.publish("robots/2/x", targetX);
         client.publish("robots/2/y", targetY);
         // client.publish(targetX,targetY);
         console.log("Robot2-Target Set");
     }
-    if (unit == "robot3"){
+    if (unit == "robot3") {
         client.publish("robots/3/x", targetX);
         client.publish("robots/3/y", targetY);
         // client.publish(targetX,targetY);
         console.log("Robot3-Target Set");
     }
-    if (unit == "robot4"){
+    if (unit == "robot4") {
         client.publish("robots/4/x", targetX);
         client.publish("robots/4/y", targetY);
         // client.publish(targetX,targetY);
@@ -214,35 +185,35 @@ function addToQueue() {
     // const targetY2 = target2Y.charAt(4);
     // client.publish("queued-destination/queue");
 
-      // Get the input values
-  // const originX = document.getElementById("originX").value;
-  // const originY = document.getElementById("originY").value;
-  const targetX = document.getElementById("target2X").value;
-  const targetY = document.getElementById("target2Y").value;
+    // Get the input values
+    // const originX = document.getElementById("originX").value;
+    // const originY = document.getElementById("originY").value;
+    const targetX = document.getElementById("target2X").value;
+    const targetY = document.getElementById("target2Y").value;
 
-  // Create the payload object
-  const payload = {
-    // origin: {
-    //   x: originX,
-    //   y: originY
-    // },
-    target: {
-      x: targetX,
-      y: targetY
-    }
-  };
+    // Create the payload object
+    const payload = {
+        // origin: {
+        //   x: originX,
+        //   y: originY
+        // },
+        target: {
+            x: targetX,
+            y: targetY
+        }
+    };
 
-  // Convert the payload object to a JSON string
-  const message = JSON.stringify(payload);
+    // Convert the payload object to a JSON string
+    const message = JSON.stringify(payload);
 
-  // Publish the message to the "queued-destination/queue" topic
-  client.publish("queued-destination/queue", message);
+    // Publish the message to the "queued-destination/queue" topic
+    client.publish("queued-destination/queue", message);
 
-  // Clear the input fields
-  // document.getElementById("originX").value = "";
-  // document.getElementById("originY").value = "";
-  document.getElementById("target2X").value = "";
-  document.getElementById("target2Y").value = "";
+    // Clear the input fields
+    // document.getElementById("originX").value = "";
+    // document.getElementById("originY").value = "";
+    document.getElementById("target2X").value = "";
+    document.getElementById("target2Y").value = "";
 }
 
 const canvas = document.getElementById("theCanvas");
@@ -256,8 +227,8 @@ const robot4 = canvas.getContext("2d");
 canvas.width = 240;
 canvas.height = 240;
 
-CanvasRenderingContext2D.prototype.drawBlock = function(x, y) {
-  this.fillRect(20 * x, 20 * y, 20, 20)
+CanvasRenderingContext2D.prototype.drawBlock = function (x, y) {
+    this.fillRect(20 * x, 20 * y, 20, 20)
 };
 
 let previousX1 = -1;
@@ -270,61 +241,61 @@ let previousX4 = -1;
 let previousY4 = -1;
 
 function clearCanvas() {
-  robot1.clearRect(20 * previousX1, 20 * previousY1, 20, 20);
-  robot2.clearRect(20 * previousX2, 20 * previousY2, 20, 20);
-  robot3.clearRect(20 * previousX3, 20 * previousY3, 20, 20);
-  robot4.clearRect(20 * previousX4, 20 * previousY4, 20, 20);
+    robot1.clearRect(20 * previousX1, 20 * previousY1, 20, 20);
+    robot2.clearRect(20 * previousX2, 20 * previousY2, 20, 20);
+    robot3.clearRect(20 * previousX3, 20 * previousY3, 20, 20);
+    robot4.clearRect(20 * previousX4, 20 * previousY4, 20, 20);
 }
 
 // Function to clear the previous position of a robot on the canvas
 function clearRobot(robotName) {
-  const context = getCanvasContext(robotName);
-  const { X, Y } = robotData[robotName].location;
-  context.clearRect(20 * X, 20 * Y, 20, 20);
+    const context = getCanvasContext(robotName);
+    const { X, Y } = robotData[robotName].location;
+    context.clearRect(20 * X, 20 * Y, 20, 20);
 }
 
 // Function to get the canvas context based on the robot's name
 function getCanvasContext(robotName) {
-  const canvas = document.getElementById('theCanvas');
-  return canvas.getContext('2d');
+    const canvas = document.getElementById('theCanvas');
+    return canvas.getContext('2d');
 }
 
 function drawRobot1(x, y) {
     console.log("Robot-1");
-    console.log(x,y);
+    console.log(x, y);
     robot1.fillStyle = "red";
-    robot1.drawBlock(x, y);
+    robot1.drawBlock(x, 11 - y);
     previousX1 = x;
-    previousY1 = y;
+    previousY1 = 11 - y;
 }
 
 function drawRobot2(x, y) {
     console.log("Robot-2");
-    robot2.fillStyle = "green";
-    robot2.drawBlock(x, y);
+    robot2.fillStyle = "yellow";
+    robot2.drawBlock(x, 11 - y);
     previousX2 = x;
-    previousY2 = y;
+    previousY2 = 11 - y;
 }
 
 function drawRobot3(x, y) {
     console.log("Robot-3");
     robot3.fillStyle = "blue";
-    robot3.drawBlock(x, y);
+    robot3.drawBlock(x, 11 - y);
     previousX3 = x;
-    previousY3 = y;
+    previousY3 = 11 - y;
 }
 
 function drawRobot4(x, y) {
     console.log("Robot-4");
-    robot4.fillStyle = "yellow";
-    robot4.drawBlock(x, y);
+    robot4.fillStyle = "green";
+    robot4.drawBlock(x, 11 - y);
     previousX4 = x;
-    previousY4 = y;
+    previousY4 = 11 - y;
 }
 
 function drawObstacle(x, y) {
     obstacles.fillStyle = "darkred";
-    obstacles.drawBlock(x, y);
+    obstacles.drawBlock(x, 11 - y);
 }
 
 function updateObstaclesOnWebpage(obstacles) {
@@ -339,18 +310,18 @@ function updateObstaclesOnWebpage(obstacles) {
     });
 }
 
-function testMessage(){
-  // test messages for location
-client.publish('robot/1/location', JSON.stringify({ targetX: 10, targetY: 20 }));
-client.publish('robot/2/location', JSON.stringify({ targetX: 5, targetY: 15 }));
-client.publish('robot/3/location', JSON.stringify({ targetX: 8, targetY: 12 }));
-client.publish('robot/4/location', JSON.stringify({ targetX: 3, targetY: 7 }));
+function testMessage() {
+    // test messages for location
+    client.publish('robot/1/location', JSON.stringify({ targetX: 10, targetY: 20 }));
+    client.publish('robot/2/location', JSON.stringify({ targetX: 5, targetY: 15 }));
+    client.publish('robot/3/location', JSON.stringify({ targetX: 8, targetY: 12 }));
+    client.publish('robot/4/location', JSON.stringify({ targetX: 3, targetY: 7 }));
 
-// test messages for obstacle
-client.publish('robot/1/obstacle', '1000');
-client.publish('robot/2/obstacle', '0100');
-client.publish('robot/3/obstacle', '0010');
-client.publish('robot/4/obstacle', '0001');
+    // test messages for obstacle
+    client.publish('robot/1/obstacle', '1000');
+    client.publish('robot/2/obstacle', '0100');
+    client.publish('robot/3/obstacle', '0010');
+    client.publish('robot/4/obstacle', '0001');
 
 }
 
