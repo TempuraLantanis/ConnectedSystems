@@ -18,13 +18,13 @@ The following MQTT topics are used in the system:
 - `obstacles/<id>`: contains the coordinates of obstacles detected by that specific id
 - `currentdestination/<id>`: this topic is the current destination which the robot will go to 
 - `queued-destination/queue`: this topic will receive all incoming target destination that will be assigned to the robot by the server
-- `queued-destination/<id>/`
+- `queued-destination/<id>/`: this topic will receive direct commands to a particular robot
 #### Robots Topic
 
 The Robots topic contains information about the robots in the system. The sub-topics under this topic provide the following data:
 
 - `id`: A string identifier with two digits that uniquely identifies a robot.
-- `locatie/x` and `locatie/y`: values representing the x and y coordinates of a robot's location, respectively.
+- `robots/x` and `robots/y`: values representing the x and y coordinates of a robot's location, respectively.
 - `richting/x` and `richting/y`:values representing the x and y components of a robot's direction vector, respectively.
 
 
@@ -32,12 +32,9 @@ The Robots topic contains information about the robots in the system. The sub-to
 
 #### Obstakels Topic
 
-The Obstakels topic contains information about obstacles in the system. The sub-topics under this topic provide the following data:
+The Obstacles topic contains information about obstacles in the system. The sub-topics under this topic provide the following data:
 
-- `type`: A string indicating the type of obstacle, which can be "wand" or "obstakel".
-- `id`: A string identifier with two digits that uniquely identifies an obstacle.
-- `locatie/x` and `locatie/y`: values representing the x and y coordinates of an obstacle's location, respectively.
-
+- `obstacles/id` these represent obstacles
 #### Raw
 
 All messages published to these topics should be retained, meaning they will be saved and delivered to new subscribers when they join the system. This ensures that the latest information is available to all subscribers.
