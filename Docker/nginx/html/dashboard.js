@@ -224,8 +224,8 @@ const robot2 = canvas.getContext("2d");
 const robot3 = canvas.getContext("2d");
 const robot4 = canvas.getContext("2d");
 
-canvas.width = 240;
-canvas.height = 240;
+canvas.width = 200;
+canvas.height = 200;
 
 CanvasRenderingContext2D.prototype.drawBlock = function (x, y) {
     this.fillRect(20 * x, 20 * y, 20, 20)
@@ -261,41 +261,36 @@ function getCanvasContext(robotName) {
 }
 
 function drawRobot1(x, y) {
-    console.log("Robot-1");
-    console.log(x, y);
     robot1.fillStyle = "red";
-    robot1.drawBlock(x, 11 - y);
-    previousX1 = x;
-    previousY1 = 11 - y;
+    robot1.drawBlock(x - 1, 10 - y);
+    previousX1 = x - 1;
+    previousY1 = 10 - y;
 }
 
 function drawRobot2(x, y) {
-    console.log("Robot-2");
     robot2.fillStyle = "yellow";
-    robot2.drawBlock(x, 11 - y);
-    previousX2 = x;
-    previousY2 = 11 - y;
+    robot2.drawBlock(x - 1, 10 - y);
+    previousX2 = x - 1;
+    previousY2 = 10 - y;
 }
 
 function drawRobot3(x, y) {
-    console.log("Robot-3");
     robot3.fillStyle = "blue";
-    robot3.drawBlock(x, 11 - y);
-    previousX3 = x;
-    previousY3 = 11 - y;
+    robot3.drawBlock(x - 1, 10 - y);
+    previousX3 = x - 1;
+    previousY3 = 10 - y;
 }
 
 function drawRobot4(x, y) {
-    console.log("Robot-4");
     robot4.fillStyle = "green";
-    robot4.drawBlock(x, 11 - y);
-    previousX4 = x;
-    previousY4 = 11 - y;
+    robot4.drawBlock(x - 1, 10 - y);
+    previousX4 = x - 1;
+    previousY4 = 10 - y;
 }
 
 function drawObstacle(x, y) {
     obstacles.fillStyle = "darkred";
-    obstacles.drawBlock(x, 11 - y);
+    obstacles.drawBlock(x - 1, 10 - y);
 }
 
 function updateObstaclesOnWebpage(obstacles) {
