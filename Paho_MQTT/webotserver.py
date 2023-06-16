@@ -68,13 +68,15 @@ def on_message(client,userdata,msg):
         
 
 
-    if msg.topic == "queued-destination":
+    if msg.topic == "queued-destination/queue":
         print('queued destination received')
         queue.append(json.loads(msg.payload.decode()))
 
-    if msg.topic[5:] == "d-destination/":
-
-        print('aaaa')
+    if msg.topic[5:] == "queued-destination/target":
+        payload = json.loads(msg.payload.decode())
+        robotID = int(payload['robotunit']['id'])
+        target = [payload['target']['x'],payload['target']['y']]
+        matchQueue(robotID).append(target)
         
     
     if msg.topic [:9] == "obstacles":
@@ -159,6 +161,16 @@ def matchQueue(robotID) -> list:
     elif robotID == 4:
         return rob4Queue
     
+
+
+def updateSingleTarget(msg):
+    msg = json.loads(msg.payload.decode())
+    
+    
+
+
+
+
 
 def checkIfArrived(robotID):
     robotPosition = matchRobot(robotID)
