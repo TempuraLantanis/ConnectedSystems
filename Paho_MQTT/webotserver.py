@@ -7,7 +7,7 @@ broker = "68.183.3.184"
 port = 1883
 
 
-destinations = [["1","2"],["5","6"],["11","10"],["3","1"]]
+destinations = [[],[],[],[]]
 
 queue = []
 rob1Queue = []
@@ -32,10 +32,15 @@ obstacleList2 = []
 obstacleList3 = []
 obstacleList4 = []
 
+global current_target
+current_target = []
 
-subscribe_topics =["$SYS/broker/clients","obstacles/1","obstacles/2","obstacles/3","obstacles/4","target-destination/#","queued-destination/#",
-                   "robots/1/x","robots/2/x","robots/3/x","robots/4/x"
-                   ,"robots/1/y","robots/2/y","robots/3/y","robots/4/y"]
+
+subscribe_topics =["$SYS/broker/clients","obstacles/1","obstacles/2","obstacles/3","obstacles/4",
+                    "target-destination/1","target-destination/2","target-destination/3","target-destination/4",
+                    "queued-destination/queue","queued-destination/target",
+                    "robots/1/x","robots/2/x","robots/3/x","robots/4/x",
+                    "robots/1/y","robots/2/y","robots/3/y","robots/4/y"]
 
 
 def on_connect (client,userdata,flags,rc):
@@ -53,17 +58,20 @@ def on_connect (client,userdata,flags,rc):
 
 def on_message(client,userdata,msg):
     message = msg.payload.decode()
-    print("Received message: " + message + " from "+ msg.topic)
-    print(msg.topic[:5])
+    # print("Received message: " + message + " from "+ msg.topic)
+    # print(msg.topic[:5])
 
     if msg.topic[:6] == "robots":
-        print('msg Pos received')
+        # print('msg Pos received')
         updatePosition(msg)
         positions_x = [rob1Pos[0],rob2Pos[0],rob3Pos[0],rob4Pos[0]]
         positions_y = [rob1Pos[1],rob2Pos[1],rob3Pos[1],rob4Pos[1]]
         
         for i, pos_x in enumerate(positions_x):
             if pos_x and positions_y[i]:
+                if current_target and current_target[0] == i+1:
+                    # print(f'i:{i} - current_target = {current_target} ')
+                    client.publish("target-destination/"+str(i+1), json.dumps(current_target[1]))
                 locationhistory.add((int(pos_x),int(positions_y[i])))
         
 
@@ -72,8 +80,10 @@ def on_message(client,userdata,msg):
         print('queued destination received')
         queue.append(json.loads(msg.payload.decode()))
 
-    if msg.topic[5:] == "queued-destination/target":
+    if msg.topic == "queued-destination/target":
         payload = json.loads(msg.payload.decode())
+        # if payload.
+        print(f'payload received: {payload} ')
         robotID = int(payload['robotunit']['id'])
         target = [payload['target']['x'],payload['target']['y']]
         matchQueue(robotID).append(target)
@@ -105,10 +115,10 @@ def updateObstacles(case):
         obstacleList4 = json.loads(str(case.payload.decode()))
     
 
-    print("obstacleList1: " + str(obstacleList1))
-    print("obstacleList2: " + str(obstacleList2))
-    print("obstacleList3: " + str(obstacleList3))
-    print("obstacleList4: " + str(obstacleList4))
+    # print("obstacleList1: " + str(obstacleList1))
+    # print("obstacleList2: " + str(obstacleList2))
+    # print("obstacleList3: " + str(obstacleList3))
+    # print("obstacleList4: " + str(obstacleList4))
 
 
 def updatePosition(case):
@@ -129,14 +139,17 @@ def updatePosition(case):
     elif case.topic == "robots/4/y":
         rob4Pos[1] = case.payload.decode()
 
-    print("rob1Pos: " + str(rob1Pos))
-    print("rob2Pos: " + str(rob2Pos))
-    print("rob3Pos: " + str(rob3Pos))
-    print("rob4Pos: " + str(rob4Pos))
+    # print("rob1Pos: " + str(rob1Pos))
+    # print("rob2Pos: " + str(rob2Pos))
+    # print("rob3Pos: " + str(rob3Pos))
+    # print("rob4Pos: " + str(rob4Pos))
 
 def on_publish(client, userdata, mid):
-    print("Message published")
-    print(userdata)
+    # print("Message published:")
+    # print(userdata)
+    pass
+    # log.debug("on_publish, mid {}".format(mid))
+
 
 
 def matchRobot(robotID):
@@ -162,35 +175,28 @@ def matchQueue(robotID) -> list:
         return rob4Queue
     
 
-
-def updateSingleTarget(msg):
-    msg = json.loads(msg.payload.decode())
-    
-    
-
-
-
-
-
 def checkIfArrived(robotID):
     robotPosition = matchRobot(robotID)
     print(robotPosition)
-    if robotPosition == destinations[robotID-1]:
+    if not destinations[robotID-1] or robotPosition == destinations[robotID-1]:
         print("robot " + str(robotID) + " arrived at destination")
+        client.publish("target-destination/"+str(robotID))    #TODO publish empty
         return True
+    else:
+        return False
     
 
 
 def updateAvailableIndex():
     for i in range(4):
-        print(i)
+        # print(i)
         if checkIfArrived(i+1) == True:
             print("robot " + str(i+1) + " arrived at destination")
             availableRobotIndex[i] = True
 
 
 def assignTasks():
-    if len(queue) >= 0:
+    if len(queue) > 0:
         for i in range(len(queue)):
             command = queue.pop(0)
             commandOrigin = [command['origin']['x'],command['origin']['y']]
@@ -201,13 +207,21 @@ def assignTasks():
         print("no tasks in queue")
 
 def executeTasks():
+    # print(f'Excute tasks function')
     for i in range(4):
         if len(matchQueue(i+1)) > 0:
+            print(f'robot{i+1} has Queue')
             if checkIfArrived(i+1):
-               newdestination =  matchQueue(i+1).pop(0)
-               destinations[i] = newdestination
-               client.publish("target-destination/"+str(i+1), json.dumps(newdestination))
-                
+                print(f'robot{i+1} has arrived')
+                newdestination =  matchQueue(i+1).pop(0)
+                # if destinations[i]:
+                destinations[i] = newdestination
+                print(f'destinations[{i}] = {destinations[i]} ')
+                global current_target
+                print(f'current_target = {current_target} ')
+                current_target = [i+1, [int(json.dumps(newdestination)[2]), int(json.dumps(newdestination)[7])]]
+                client.publish("target-destination/"+str(i+1), json.dumps(current_target[1]))
+                    
         
             
 
@@ -249,7 +263,7 @@ while True:
     # print(availableRobotIndex)
     # updateAvailableIndex()
     # print(queue)
-    print(locationhistory)
+    # print(locationhistory)
     t.sleep(1)
     # print('queue')
     # print(queue)

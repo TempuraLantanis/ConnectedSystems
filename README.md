@@ -18,7 +18,7 @@ The following MQTT topics are used in the system:
 - `obstacles/<id>`: contains the coordinates of obstacles detected by that specific id
 - `currentdestination/<id>`: this topic is the current destination which the robot will go to 
 - `queued-destination/queue`: this topic will receive all incoming target destination that will be assigned to the robot by the server
-- `queued-destination/<id>/`
+- `queued-destination/<id>/`: this topic will receive direct commands to a particular robot
 #### Robots Topic
 
 The Robots topic contains information about the robots in the system. The sub-topics under this topic provide the following data:
