@@ -8,8 +8,8 @@ EXTERNPROTO "../protos/Unit.proto"
 WorldInfo {
 }
 Viewpoint {
-  orientation 0.45525143843692045 -0.45323759894303106 -0.7663692365338467 4.4450987290549495
-  position 0.639258170749924 -1.151784217486513 2.9492691158094786
+  orientation 0.40947683564293197 -0.4117629625063872 -0.8141130043057997 4.513615390324304
+  position 0.48367697227616585 -0.7491622078564483 1.644083581114761
 }
 TexturedBackground {
 }
@@ -22,7 +22,7 @@ RectangleArena {
 Unit {
   name "box_unit1"
   translation 0 0 0.05
-  target 6 7
+  target 0 0
 }
 Unit {
   name "box_unit2"
