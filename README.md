@@ -1,5 +1,15 @@
 # ConnectedSystems
 
+
+## Project Contributors
+
+The project was developed by the following students:
+
+1. Sam Yost (Student ID: 1030197)
+2. Terrence Zhong (Student ID: 1028516)
+3. Giovanny Marchena (Student ID: 1021941)
+
+
 ### Protocol: MQTT
 
 This system uses the MQTT protocol for communication.
@@ -18,7 +28,18 @@ The following MQTT topics are used in the system:
 - `obstacles/<id>`: contains the coordinates of obstacles detected by that specific id
 - `currentdestination/<id>`: this topic is the current destination which the robot will go to 
 - `queued-destination/queue`: this topic will receive all incoming target destination that will be assigned to the robot by the server
-- `queued-destination/<id>/`
+- `queued-destination/target/`: This topic is used to publish the target destinations that are queued for the robots.
+    - Publish Format; JSON object with the following propoties:
+        - `id`: A string identifier specifying the robot ID.
+        - `destination/x`: The x-coordinate of the target destination.
+        - `destination/y`: The y-coordinate of the target destination.
+- `target-destination`: This topic is used to publish the target destination for a specific robot.
+    - Publish Format: JSON object with the following properties:
+        - `id:` A string identifier specifying the robot ID.
+        - `destination/x:` The x-coordinate of the target destination.
+        - `destination/y:` The y-coordinate of the target destination.
+
+
 #### Robots Topic
 
 The Robots topic contains information about the robots in the system. The sub-topics under this topic provide the following data:
@@ -26,6 +47,14 @@ The Robots topic contains information about the robots in the system. The sub-to
 - `id`: A string identifier with two digits that uniquely identifies a robot.
 - `locatie/x` and `locatie/y`: values representing the x and y coordinates of a robot's location, respectively.
 - `richting/x` and `richting/y`:values representing the x and y components of a robot's direction vector, respectively.
+- `led/positieve/x`: This topic represents the x-coordinate of the positieve LED location on a robot.
+    - Publish Format: Integer value representing the x-coordinate.
+- `led/positieve/y`: This topic represents the y-coordinate of the positive LED location on a robot.
+    - Publish Format: Integer value representing the y-coordinate..
+- `led/negatieve/x`: This topic represents the x-coordinate of the negative LED location on a robot.
+    - Publish Format: Integer value representing the x-coordinate.
+- `led/negatieve/y`: This topic represents the y-coordinate of the negative LED location on a robot.
+    - Publish Format: Integer value representing the y-coordinate.
 
 
 
