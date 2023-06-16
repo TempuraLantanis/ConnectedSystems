@@ -16,20 +16,25 @@ def on_connect(client, userdata, flags, rc):
 
 def on_message(client, userdata, msg):
     message = msg.payload.decode()
-    # print("Received message: " + message + " from " + msg.topic)
-    # print(msg.topic[:5])
 
     if msg.topic[:6] == "robots":
-        # print('msg Pos received')
         updatePosition(msg)
 
     if msg.topic == "obstacles/masterlist":
-        # print('obstacles received')
+        global obstacles_local
+        global obstacles_server
+        global graph
+        obstacles_server = [tuple(x)
+                            for x in json.loads(msg.payload.decode())]
+        for obst_s in obstacles_server:
+            if obst_s not in obstacles_local:
+                # obstacles_local.append(obst_s)
+                add_obstacle(graph, obst_s)
 
-        # print(msg)
-        pass
-
-        # json.dumps()
+    if msg.topic == "target":  # TODO change topic and test
+        global target
+        target = tuple(json.loads(msg.payload.decode()))
+        print(f'{sv_name} target: {target} ')
 
 
 def updatePosition(case):
@@ -37,6 +42,9 @@ def updatePosition(case):
     global location_unit2
     global location_unit3
     global location_unit4
+    global mqtt_robot_x_location_topics
+    global mqtt_robot_y_location_topics
+    global graph
     temp_location = ()
     locations_units = [
         location_unit1,
@@ -46,7 +54,6 @@ def updatePosition(case):
     ]
     # topics
     unit_index = -1
-    # print(f'unit_2 = {location_unit2} ')
     if case.topic == "robots/1/x":
         temp_location = location_unit1
         location_unit1 = (int(case.payload.decode()), location_unit1[1])
@@ -80,7 +87,18 @@ def updatePosition(case):
         location_unit4 = (location_unit4[0], int(case.payload.decode()))
         unit_index = 3
 
-    global graph
+    # check what topic came in
+    # for i, topic in enumerate(mqtt_robot_x_location_topics):
+    #     # Check if x or y
+    #     if case.topic == topic or case.topic == mqtt_robot_y_location_topics[i]:
+    #         temp_location = locations_units[i]
+    #         locations_units[i] = (
+    #             int(case.payload.decode()),
+    #             locations_units[i][1]) if case.topic == topic else (
+    #             locations_units[i][0],
+    #             int(case.payload.decode()))
+    #         unit_index = i
+
     graph = update_graph(graph, obstacles_local,
                          temp_location, locations_units[unit_index])
 
@@ -109,7 +127,9 @@ def update_graph(adjacency_list, obstacles, old_location, new_location):
     - old_location: The old location of the moved unit
     - new_location: The new location of the moved unit
     '''
-    # TODO remove from obstacles if moved
+    # Remove other unit's old location from obstacles
+    if old_location in obstacles_local:
+        obstacles_local.remove(old_location)
     # Add unit's old location back to its neighbors
     if (old_location[0] + 1 != new_location[0] and
         old_location[0] + 1 <= 9 and
@@ -139,9 +159,11 @@ def update_graph(adjacency_list, obstacles, old_location, new_location):
     for neighbor in adjacency_list[new_location]:
         if new_location in adjacency_list[neighbor]:
             adjacency_list[neighbor].remove(new_location)
-
     # clear new_location's adj. list
     adjacency_list[new_location].clear()
+
+    # Add new location to obstacles
+    # obstacles_local.append(new_location)
 
     return adjacency_list
 
@@ -150,6 +172,7 @@ def add_obstacle(adjacency_list, obstacle):
     '''
     Update the graph when an obstacle is added. And send obstacle_list to server
     '''
+    global obstacles_local
     obstacles_local.append(obstacle)
     # Remove the obstacle from the neighbors of its neighbors
     for neighbor in adjacency_list[obstacle]:
@@ -161,12 +184,6 @@ def add_obstacle(adjacency_list, obstacle):
 
     for i, name in enumerate(unit_names):
         if sv_name == name:
-            # print(json_obstacles_server)
-            # TODO: if not in other_units_locations
-            obstacles_publish = []
-            # for obst in obstacles_local:
-            #     if obst not in other_units:
-            # obstacles_publish.append(obst)
             client.publish(
                 mqtt_obstacles_topics[i], json.dumps(obstacles_local))
 
@@ -262,12 +279,39 @@ def update_leds(current, next):
     '''
     if next[0] > current[0]:
         led_pos_x.set(1)
-    elif next[0] < current[0]:
+        # Send "ON" string when subscribing
+        client.publish(mqtt_led_topic[0], "LEDPOSXON")
+    else:
+        led_pos_x.set(0)
+        # Send "OFF" string when subscribing
+        client.publish(mqtt_led_topic[0], "LEDPOSXOFF")
+
+    if next[0] < current[0]:
         led_neg_x.set(1)
-    elif next[1] > current[1]:
+        # Send "ON" string when subscribing
+        client.publish(mqtt_led_topic[2], "LEDNEGXON")
+    else:
+        led_neg_x.set(0)
+        # Send "OFF" string when subscribing
+        client.publish(mqtt_led_topic[2], "LEDNEGXOFF")
+
+    if next[1] > current[1]:
         led_pos_y.set(1)
-    elif next[1] < current[1]:
+        # Send "ON" string when subscribing
+        client.publish(mqtt_led_topic[1], "LEDPOSYON")
+    else:
+        led_pos_y.set(0)
+        # Send "OFF" string when subscribing
+        client.publish(mqtt_led_topic[1], "LEDPOSYOFF")
+
+    if next[1] < current[1]:
         led_neg_y.set(1)
+        # Send "ON" string when subscribing
+        client.publish(mqtt_led_topic[3], "LEDNEGYON")
+    else:
+        led_neg_y.set(0)
+        # Send "OFF" string when subscribing
+        client.publish(mqtt_led_topic[3], "LEDNEGYOFF")
 
 
 # create the Robot instance
@@ -314,6 +358,8 @@ other_units = [
     location_unit2,
     location_unit3,
     location_unit4,
+
+
 ]
 this_unit_pos = supervisorNode.getPosition()
 # Remove unit itself from other_units
@@ -350,20 +396,14 @@ mqtt_obstacles_topics = [
     "obstacles/3",
     "obstacles/4"
 ]
+mqtt_led_topic = [
+    "led/positieve/x",
+    "led/positieve/y",
+    "led/negatieve/x",
+    "led/negatieve/y"
+]
 mqtt_obstacles_master = "obstacles/masterlist"
 
-# subscribe_topics = ["$SYS/broker/clients",
-#                     "obstakels",
-#                     "currentDestination",
-#                     "queuedDestination",
-#                     "robots/1/x",
-#                     "robots/2/x",
-#                     "robots/3/x",
-#                     "robots/4/x",
-#                     "robots/1/y",
-#                     "robots/2/y",
-#                     "robots/3/y",
-#                     "robots/4/y"]
 
 # Create MQTT client
 client = mqtt.Client()
@@ -379,14 +419,14 @@ client.loop_start()
 
 # Subscribe to other units' locations
 
-# TODO get locations from all the units from the server
 for i, name in enumerate(unit_names):
     if sv_name != name:
         client.subscribe(mqtt_robot_x_location_topics[i])
         client.subscribe(mqtt_robot_y_location_topics[i])
 client.subscribe("obstacles/masterlist")
 
-
+global obstacles_local
+global obstacles_server
 obstacles_local = []
 obstacles_server = []
 
@@ -413,27 +453,16 @@ while robot.step(duration) != -1:
     distance_south = ds_s.getValue()
     distance_west = ds_w.getValue()
 
-    # Update graph if another unit has moved
-    for unit in other_units:
-        # TODO update all unit's locations from server (except current unit)
-        pass
-        # TODO copmare local units with server if moved
-        # if unit_local != unit_server:   # unit has moved
-        #   graph = update_graph(graph, obstacles+other_units, unit_local_location, unit_server_location)
-
     cur_pos = (round(10 * position_field[0]),   # round example: 0.1 -> 1
                round(10 * position_field[1]))
     target = (round(sv_target_field[0]),    # round example: 1.0 -> 1
               round(sv_target_field[1]))
 
-    # Publish MQTT messages
-    # message = "Hello, ESP32. This is WeBots!"
+    # Publish unit's location
     for i, name in enumerate(unit_names):
         if sv_name == name:
-            # print(f'cur_pos[{i}] = {cur_pos[i]} ')
             client.publish(mqtt_robot_x_location_topics[i], cur_pos[0])
             client.publish(mqtt_robot_y_location_topics[i], cur_pos[1])
-    # print(message)
 
     # Check for obstacles with sensor data
     obstacle = ()
@@ -454,10 +483,7 @@ while robot.step(duration) != -1:
         if obstacle not in obstacles_local:
             add_obstacle(graph, obstacle)
 
-    # obstacles_server = [tuple(x)
-    #                          for x in json.loads(json_obstacles_local)]
-    if sv_name == "box_unit1":
-        print(f'{sv_name} Unit 2: {location_unit2} ')
+    # print(f'{sv_name} obst_local: {obstacles_local} ')
 
     # Calculate path if needed
     if target != cur_pos:
