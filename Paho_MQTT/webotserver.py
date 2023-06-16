@@ -1,6 +1,7 @@
 import paho.mqtt.client as mqtt
 import time as t
 import json
+import random as r
 
 broker = "68.183.3.184"
 port = 1883
@@ -9,6 +10,10 @@ port = 1883
 destinations = [["1","2"],["5","6"],["11","10"],["3","1"]]
 
 queue = []
+rob1Queue = []
+rob2Queue = []
+rob3Queue = []
+rob4Queue = []
 
 
 availableRobotIndex = [False, False, False, False];
@@ -28,7 +33,7 @@ obstacleList3 = []
 obstacleList4 = []
 
 
-subscribe_topics =["$SYS/broker/clients","obstacles/1","obstacles/2","obstacles/3","obstacles/4","currentDestination","queuedDestination",
+subscribe_topics =["$SYS/broker/clients","obstacles/1","obstacles/2","obstacles/3","obstacles/4","target-destination/#","queued-destination/#",
                    "robots/1/x","robots/2/x","robots/3/x","robots/4/x"
                    ,"robots/1/y","robots/2/y","robots/3/y","robots/4/y"]
 
@@ -63,9 +68,16 @@ def on_message(client,userdata,msg):
         
 
 
-    if msg.topic == "queuedDestination":
-        print('queuedDestination received')
+    if msg.topic == "queued-destination/queue":
+        print('queued destination received')
         queue.append(json.loads(msg.payload.decode()))
+
+    if msg.topic[5:] == "queued-destination/target":
+        payload = json.loads(msg.payload.decode())
+        robotID = int(payload['robotunit']['id'])
+        target = [payload['target']['x'],payload['target']['y']]
+        matchQueue(robotID).append(target)
+        
     
     if msg.topic [:9] == "obstacles":
         print('obstacles received')
@@ -136,6 +148,28 @@ def matchRobot(robotID):
         return rob3Pos
     elif robotID == 4:
         return rob4Pos
+    
+
+
+def matchQueue(robotID) -> list:
+    if robotID == 1:
+        return rob1Queue
+    elif robotID == 2:
+        return rob2Queue
+    elif robotID == 3:
+        return rob3Queue
+    elif robotID == 4:
+        return rob4Queue
+    
+
+
+def updateSingleTarget(msg):
+    msg = json.loads(msg.payload.decode())
+    
+    
+
+
+
 
 
 def checkIfArrived(robotID):
@@ -151,22 +185,32 @@ def updateAvailableIndex():
     for i in range(4):
         print(i)
         if checkIfArrived(i+1) == True:
-            print('setting state in available index')
+            print("robot " + str(i+1) + " arrived at destination")
             availableRobotIndex[i] = True
 
 
 def assignTasks():
-    if len(queue) >= 0 & availableRobotIndex.count(True) > 0:
-        for i in range(4):
-            if availableRobotIndex[i] == True:
-                client.publish("currentDestination/"+str(i)+"/x",queue[0]['x'])
-                client.publish("currentDestination/"+str(i)+"/y",queue[0]['y'])
-                availableRobotIndex[i] = False
-                setDestination = queue.pop(0)
-                destinations[i-1] = [setDestination['x'],setDestination['y']]
-                break
-            else:
-                pass
+    if len(queue) >= 0:
+        for i in range(len(queue)):
+            command = queue.pop(0)
+            commandOrigin = [command['origin']['x'],command['origin']['y']]
+            commandTarget = [command['target']['x'],command['target']['y']]
+            queueItem = [commandOrigin,commandTarget]
+            matchQueue(r.randint(1,4)).extend(queueItem)
+    else:
+        print("no tasks in queue")
+
+def executeTasks():
+    for i in range(4):
+        if len(matchQueue(i+1)) > 0:
+            if checkIfArrived(i+1):
+               newdestination =  matchQueue(i+1).pop(0)
+               destinations[i] = newdestination
+               client.publish("target-destination/"+str(i+1), json.dumps(newdestination))
+                
+        
+            
+
 
 
 
@@ -199,6 +243,8 @@ client.loop_start()
 client.publish("connecTest", "Hello, MQTT from Server!")
 
 while True:
+    assignTasks()
+    executeTasks()
     # print('CheckUpdate')
     # print(availableRobotIndex)
     # updateAvailableIndex()
