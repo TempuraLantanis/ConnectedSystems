@@ -44,7 +44,7 @@ const char *mqttLedTopics[] = {
 
 
 const char *mqttEspTopic = "esp32";
-const char *mqttButtonTopic = "buttonTopic";
+const char *mqttButtonTopic = "noodstop";
 
 WiFiClient wifiClient;
 PubSubClient mqttClient(wifiClient);
@@ -156,17 +156,18 @@ void reconnect()
     }
   }
 }
-//V1
+
 void IRAM_ATTR sendStop()
 {
   if (mqttClient.connected())
   {
     // mqttClient.print(mqttButtonTopic,"STOP");
-    mqttClient.publish(mqttButtonTopic, "STOP");
+    // mqttClient.publish(mqttButtonTopic, "STOP");
     // mqttClient.publish("noodstop","Y");
     // mqttClient.publish(buttonTopic, "STOP_PRESSED");
+    Serial.println("Noodstop");
   }
-  Serial.println("Stop button pressed!");
+  // Serial.println("Stop button pressed!");
 }
 
 
@@ -252,11 +253,12 @@ void loop()
     delay(50); // debounce delay
 
     // Check if the button is pressed (LOW state)
-    if (currButtonState == LOW)
+    if (currButtonState == HIGH)
     {
       // Publish a message indicating button press
       // mqttClient.publish(buttonTopic, "BUTTON_PRESSED");
       mqttClient.publish(mqttButtonTopic, "Y");
+      Serial.println("Noodstop");
     }
 
     prevButtonState = currButtonState;
